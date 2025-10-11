@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard - Resume Bank{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Welcome Section -->
+        <div class="col-12 mb-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h2 class="mb-2">
+                                <i class="fas fa-user-graduate me-2"></i>
+                                Welcome, {{ student.name }}!
+                            </h2>
+                            <p class="mb-0">Manage your profile, upload resume, and track your placement status.</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <span class="status-badge status-{{ student.placement_status }}">
+                                {{ student.get_placement_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Information -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        Profile Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong>Name:</strong>
+                            <p class="text-muted">{{ student.name }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Roll Number:</strong>
+                            <p class="text-muted">{{ student.roll_no }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Email:</strong>
+                            <p class="text-muted">{{ student.email }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Branch:</strong>
+                            <p class="text-muted">{{ student.get_branch_display_name }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>CGPA:</strong>
+                            <p class="text-muted">{{ student.cgpa }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Placement Status:</strong>
+                            <p>
+                                <span class="status-badge status-{{ student.placement_status }}">
+                                    {{ student.get_placement_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                        {% if student.is_placed %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Company:</strong>
+                            <p class="text-muted">{{ student.company_name }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Package:</strong>
+                            <p class="text-muted">{{ student.package }} LPA</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Skills:</strong>
+                        <div class="mt-2">
+                            {% if skills_list %}
+                                {% for skill in skills_list %}
+                                    <span class="skill-badge">{{ skill }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted">No skills listed</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'students:profile' %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>
+                            Edit Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Resume Status -->
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-pdf me-2"></i>
+                        Resume Status
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    {% if student.resume %}
+                        <div class="mb-3">
+                            <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
+                        </div>
+                        <h6 class="text-success">Resume Uploaded</h6>
+                        <p class="text-muted small">{{ student.get_resume_filename }}</p>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'students:download_resume' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-download me-2"></i>
+                                Download Resume
+                            </a>
+                            <a href="{% url 'students:upload_resume' %}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-upload me-2"></i>
+                                Update Resume
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="mb-3">
+                            <i class="fas fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                        </div>
+                        <h6 class="text-warning">No Resume Uploaded</h6>
+                        <p class="text-muted small">Please upload your resume to complete your profile.</p>
+                        <div class="d-grid">
+                            <a href="{% url 'students:upload_resume' %}" class="btn btn-primary">
+                                <i class="fas fa-upload me-2"></i>
+                                Upload Resume
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'students:profile' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-edit me-2"></i>
+                            Update Profile
+                        </a>
+                        <a href="{% url 'students:upload_resume' %}" class="btn btn-outline-success">
+                            <i class="fas fa-file-upload me-2"></i>
+                            Upload/Update Resume
+                        </a>
+                        <a href="{% url 'students:logout' %}" class="btn btn-outline-danger">
+                            <i class="fas fa-sign-out-alt me-2"></i>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

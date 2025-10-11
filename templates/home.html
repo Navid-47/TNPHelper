@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Resume Bank Management System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    Resume Bank Management System
+                </h1>
+                <p class="lead mb-4">
+                    A comprehensive solution for managing student resumes and placement data. 
+                    Streamline your college's Training & Placement Office operations.
+                </p>
+                <div class="d-flex gap-3">
+                    <a href="{% url 'students:register' %}" class="btn btn-light btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Student Registration
+                    </a>
+                    <a href="{% url 'tpo:login' %}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-chart-line me-2"></i>TPO Login
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-graduation-cap" style="font-size: 8rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="display-6 fw-bold mb-3">Key Features</h2>
+                <p class="lead text-muted">
+                    Everything you need to manage student resumes and placement data efficiently.
+                </p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Student Features -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="fas fa-user-graduate text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                        <h5 class="card-title">Student Portal</h5>
+                        <p class="card-text">
+                            Register, upload resumes, and manage your profile. Update placement status and track your progress.
+                        </p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-check text-success me-2"></i>Easy registration</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Resume upload (PDF)</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Profile management</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Placement status updates</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TPO Features -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="fas fa-chart-line text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                        <h5 class="card-title">TPO Dashboard</h5>
+                        <p class="card-text">
+                            Comprehensive dashboard for Training & Placement Officers with advanced filtering and analytics.
+                        </p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-check text-success me-2"></i>Student management</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Advanced filtering</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Resume downloads</li>
+                            <li><i class="fas fa-check text-success me-2"></i>CSV export</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Analytics Features -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="fas fa-chart-pie text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                        <h5 class="card-title">Analytics & Reports</h5>
+                        <p class="card-text">
+                            Visual analytics with charts and reports to track placement statistics and student performance.
+                        </p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-check text-success me-2"></i>CGPA distribution</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Skills analysis</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Placement rates</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Branch-wise stats</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="display-6 fw-bold mb-3">How It Works</h2>
+                <p class="lead text-muted">
+                    Simple steps to get started with the Resume Bank Management System.
+                </p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-3 text-center">
+                <div class="mb-3">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <span class="fw-bold">1</span>
+                    </div>
+                </div>
+                <h5>Register</h5>
+                <p class="text-muted">Students register with their details and create an account.</p>
+            </div>
+            
+            <div class="col-md-3 text-center">
+                <div class="mb-3">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <span class="fw-bold">2</span>
+                    </div>
+                </div>
+                <h5>Upload Resume</h5>
+                <p class="text-muted">Upload your resume in PDF format and update your profile.</p>
+            </div>
+            
+            <div class="col-md-3 text-center">
+                <div class="mb-3">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <span class="fw-bold">3</span>
+                    </div>
+                </div>
+                <h5>TPO Management</h5>
+                <p class="text-muted">TPOs can view, filter, and manage student data efficiently.</p>
+            </div>
+            
+            <div class="col-md-3 text-center">
+                <div class="mb-3">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <span class="fw-bold">4</span>
+                    </div>
+                </div>
+                <h5>Analytics</h5>
+                <p class="text-muted">Generate reports and view analytics for better decision making.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h2 class="display-6 fw-bold mb-4">Ready to Get Started?</h2>
+                <p class="lead mb-4">
+                    Join thousands of students and TPOs who are already using our system to streamline their placement process.
+                </p>
+                <div class="d-flex gap-3 justify-content-center">
+                    <a href="{% url 'students:register' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Register as Student
+                    </a>
+                    <a href="{% url 'tpo:login' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>TPO Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %} 
