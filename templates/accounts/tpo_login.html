@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}TPO Login — TNP Portal{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card animate-fade-up">
+        <!-- Icon + Heading -->
+        <div class="text-center mb-4">
+            <div class="auth-icon-circle scale-hover">
+                <i class="bi bi-shield-lock-fill"></i>
+            </div>
+            <h3 class="fw-bold mb-1">TPO Admin</h3>
+            <p style="color: var(--slate-500);">Sign in with your admin credentials</p>
+        </div>
+
+        <!-- Form -->
+        <div class="card border-0 shadow-sm glass-panel">
+            <div class="card-body p-4 auth-form">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg hover-lift">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Footer links -->
+        <div class="text-center mt-3">
+            <a href="{% url 'core:home' %}" class="text-decoration-none small" style="color: var(--slate-400);">
+                <i class="bi bi-arrow-left me-1"></i>Back to Home
+            </a>
+            <span class="mx-2" style="color: var(--slate-300);">|</span>
+            <a href="{% url 'accounts:student_login' %}" class="text-decoration-none small"
+                style="color: var(--slate-400);">
+                <i class="bi bi-person me-1"></i>Student Login
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Placement Drives — TNP Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 animate-fade-up">
+    <h4 class="fw-bold mb-0">
+        <i class="bi bi-briefcase me-2 text-primary"></i>
+        Active Placement Drives
+    </h4>
+</div>
+
+{% if drives %}
+<div class="row g-4">
+    {% for drive in drives %}
+    <div class="col-md-6 col-lg-4 animate-fade-up">
+        <div class="card card-hover h-100 border-0">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-1">{{ drive.company_name }}</h5>
+                <p class="small mb-3" style="color: var(--slate-500);">{{ drive.role }}</p>
+
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge rounded-pill px-3 py-2"
+                        style="background: var(--primary-50); color: var(--primary-700);">
+                        <i class="bi bi-currency-rupee"></i> {{ drive.package }} LPA
+                    </span>
+                    {% if drive.min_cgpa > 0 %}
+                    <span class="badge rounded-pill px-3 py-2"
+                        style="background: var(--slate-100); color: var(--slate-600);">
+                        <i class="bi bi-bar-chart"></i> Min {{ drive.min_cgpa }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                {% if drive.description %}
+                <p class="small mb-2" style="color: var(--slate-500);">{{ drive.description|truncatewords:25 }}</p>
+                {% endif %}
+
+                {% if drive.allowed_branches %}
+                <p class="small mb-2" style="color: var(--slate-500);">
+                    <i class="bi bi-building me-1"></i>{{ drive.allowed_branches }}
+                </p>
+                {% endif %}
+
+                {% if drive.deadline %}
+                <p class="small mb-0" style="color: var(--slate-400);">
+                    <i class="bi bi-calendar3 me-1"></i>
+                    Deadline: {{ drive.deadline|date:"M d, Y" }}
+                </p>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-transparent border-top" style="border-color: var(--slate-100) !important;">
+                {% if drive.id in applied_drive_ids %}
+                <span class="btn btn-sm w-100 disabled"
+                    style="background: var(--success-surface); color: var(--success-text);">
+                    <i class="bi bi-check-circle me-1"></i> Applied
+                </span>
+                {% else %}
+                <form method="post" action="{% url 'students:apply_drive' drive.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-sm w-100 hover-lift"
+                        onclick="return confirm('Apply to {{ drive.company_name }} — {{ drive.role }}?')">
+                        <i class="bi bi-send me-1"></i> Apply Now
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card border-0">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-briefcase" style="font-size: 3rem; color: var(--slate-300);"></i>
+        <h5 class="mt-3 fw-bold" style="color: var(--slate-600);">No active drives</h5>
+        <p class="text-muted">Check back later for new placement opportunities.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,41 +1,96 @@
 {% extends 'base.html' %}
 
-{% block title %}Home - Resume Bank Management System{% endblock %}
+{% block title %}TNP Portal — Resume Bank Management System{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
 <!-- Hero Section -->
 <section class="hero-section">
     <div class="container position-relative" style="z-index: 2;">
         <div class="row align-items-center">
             <div class="col-lg-6 animate-fade-up">
                 <span class="badge bg-white text-primary mb-3 rounded-pill px-3 py-2 shadow-sm">
-                    <i class="fas fa-star me-1"></i> #1 Placement Platform
+                    <i class="bi bi-star-fill me-1"></i> #1 Placement Platform
                 </span>
-                <h1 class="display-4 hero-title mb-4">
-                    Resume Bank <br>
-                    <span class="text-white-50">Management System</span>
+                <h1 class="hero-title mb-4">
+                    Resume Bank<br>
+                    <span style="color: rgba(255,255,255,0.6);">Management System</span>
                 </h1>
                 <p class="hero-subtitle mb-4">
                     A comprehensive solution for managing student resumes and placement data.
-                    Streamline your college's Training & Placement Office operations with our advanced tools.
+                    Streamline your college's Training & Placement Office operations.
                 </p>
-                <div class="d-flex gap-3">
-                    <a href="{% url 'students:register' %}" class="btn btn-light btn-lg shadow-lg">
-                        <i class="fas fa-user-plus me-2"></i>Student Registration
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="{% url 'accounts:student_register' %}" class="btn btn-light btn-lg hover-lift shadow">
+                        <i class="bi bi-person-plus me-2"></i>Register
                     </a>
-                    <a href="{% url 'tpo:login' %}" class="btn btn-outline-light btn-lg">
-                        <i class="fas fa-chart-line me-2"></i>TPO Login
+                    <a href="{% url 'accounts:tpo_login' %}" class="btn btn-outline-light btn-lg hover-lift">
+                        <i class="bi bi-shield-lock me-2"></i>TPO Login
                     </a>
                 </div>
-            </div>
-            <div class="col-lg-6 text-center animate-fade-up delay-200">
-                <div class="position-relative">
-                    <div class="position-absolute top-50 start-50 translate-middle"
-                        style="width: 300px; height: 300px; background: white; filter: blur(100px); opacity: 0.2; border-radius: 50%;">
+
+                <div class="trust-signals">
+                    <div class="trust-item">
+                        <i class="bi bi-check-circle-fill"></i> Free to use
                     </div>
-                    <i class="fas fa-graduation-cap position-relative"
-                        style="font-size: 10rem; color: rgba(255,255,255,0.9); transform: rotate(-10deg);"></i>
+                    <div class="trust-item">
+                        <i class="bi bi-shield-fill-check"></i> Secure
+                    </div>
+                    <div class="trust-item">
+                        <i class="bi bi-lightning-fill"></i> Fast
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6 text-center animate-fade-up delay-200 d-none d-lg-block">
+                <div class="position-relative">
+                    <!-- Pulse blob -->
+                    <div class="animate-pulse-slow position-absolute top-50 start-50 translate-middle"
+                        style="width: 300px; height: 300px; background: white; filter: blur(80px); border-radius: 50%;">
+                    </div>
+
+                    <!-- Glass card illustration -->
+                    <div class="hero-card mx-auto" style="max-width: 380px;">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div
+                                style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-person-fill" style="font-size: 1.3rem;"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600;">Student Profile</div>
+                                <div style="font-size: 0.8rem; opacity: 0.7;">Placement Ready</div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span style="opacity: 0.7;">Profile Completion</span>
+                                <span style="font-weight: 600;">85%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 85%;"></div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-around pt-2">
+                            <div class="stat-item">
+                                <div class="stat-value">8.5</div>
+                                <div class="stat-label">CGPA</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">12</div>
+                                <div class="stat-label">Skills</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">3</div>
+                                <div class="stat-label">Drives</div>
+                            </div>
+                        </div>
+
+                        <!-- Floating badge -->
+                        <div class="animate-float position-absolute" style="top: -12px; right: -12px;">
+                            <span class="badge bg-white text-success px-3 py-2 shadow rounded-pill">
+                                <i class="bi bi-check-circle-fill me-1"></i> Placed
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -43,86 +98,68 @@
 </section>
 
 <!-- Features Section -->
-<section class="py-5 bg-light-subtle">
+<section class="py-5">
     <div class="container">
         <div class="row text-center mb-5 animate-fade-up">
             <div class="col-lg-8 mx-auto">
-                <span class="text-primary fw-bold text-uppercase letter-spacing-2">Features</span>
-                <h2 class="display-6 fw-bold mb-3 mt-2 text-gradient">Why Choose Us?</h2>
-                <p class="lead text-muted">
+                <span class="section-label">Features</span>
+                <h2 class="display-6 fw-bold mt-2 mb-3">Why Choose Us?</h2>
+                <p class="lead" style="color: var(--slate-500);">
                     Everything you need to manage student resumes and placement data efficiently.
                 </p>
             </div>
         </div>
 
         <div class="row g-4">
-            <!-- Student Features -->
-            <div class="col-md-6 col-lg-4 animate-fade-up delay-100">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="feature-icon mb-4">
-                            <i class="fas fa-user-graduate"></i>
+            <div class="col-md-6 col-lg-3 animate-fade-up delay-100">
+                <div class="card card-hover h-100 border-0">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon-wrapper mx-auto">
+                            <i class="bi bi-person-badge"></i>
                         </div>
-                        <h5 class="card-title fw-bold">Student Portal</h5>
-                        <p class="card-text text-muted mb-4">
-                            Register, upload resumes, and manage your profile. Update placement status and track your
-                            progress.
+                        <h5 class="fw-bold mb-2">Student Portal</h5>
+                        <p class="small" style="color: var(--slate-500);">
+                            Register, upload resumes, manage your profile, and track placement status.
                         </p>
-                        <ul class="list-unstyled text-start">
-                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Easy registration</li>
-                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Resume upload (PDF)
-                            </li>
-                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Profile management
-                            </li>
-                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Placement status
-                                updates</li>
-                        </ul>
                     </div>
                 </div>
             </div>
-
-            <!-- TPO Features -->
-            <div class="col-md-6 col-lg-4 animate-fade-up delay-200">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="feature-icon mb-4">
-                            <i class="fas fa-chart-line"></i>
+            <div class="col-md-6 col-lg-3 animate-fade-up delay-200">
+                <div class="card card-hover h-100 border-0">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon-wrapper mx-auto">
+                            <i class="bi bi-cloud-arrow-up"></i>
                         </div>
-                        <h5 class="card-title fw-bold">TPO Dashboard</h5>
-                        <p class="card-text text-muted mb-4">
-                            Comprehensive dashboard for Training & Placement Officers with advanced filtering and
-                            analytics.
+                        <h5 class="fw-bold mb-2">Resume Upload</h5>
+                        <p class="small" style="color: var(--slate-500);">
+                            Upload your resume in PDF format and keep it ready for placement drives.
                         </p>
-                        <ul class="list-unstyled text-start">
-                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Student management
-                            </li>
-                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Advanced filtering
-                            </li>
-                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Resume downloads</li>
-                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>CSV export</li>
-                        </ul>
                     </div>
                 </div>
             </div>
-
-            <!-- Analytics Features -->
-            <div class="col-md-6 col-lg-4 animate-fade-up delay-300">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body">
-                        <div class="feature-icon mb-4">
-                            <i class="fas fa-chart-pie"></i>
+            <div class="col-md-6 col-lg-3 animate-fade-up delay-300">
+                <div class="card card-hover h-100 border-0">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon-wrapper mx-auto">
+                            <i class="bi bi-bar-chart-line"></i>
                         </div>
-                        <h5 class="card-title fw-bold">Analytics & Reports</h5>
-                        <p class="card-text text-muted mb-4">
-                            Visual analytics with charts and reports to track placement statistics and student
-                            performance.
+                        <h5 class="fw-bold mb-2">TPO Dashboard</h5>
+                        <p class="small" style="color: var(--slate-500);">
+                            Comprehensive student management with filters, exports, and analytics.
                         </p>
-                        <ul class="list-unstyled text-start">
-                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>CGPA distribution</li>
-                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Skills analysis</li>
-                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Placement rates</li>
-                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Branch-wise stats</li>
-                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3 animate-fade-up delay-400">
+                <div class="card card-hover h-100 border-0">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon-wrapper mx-auto">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">Secure & Reliable</h5>
+                        <p class="small" style="color: var(--slate-500);">
+                            Role-based access, secure authentication, and reliable data management.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -130,85 +167,57 @@
     </div>
 </section>
 
-<!-- How It Works Section -->
+<!-- Stats Bar -->
+<section class="py-5" style="background: var(--slate-50);">
+    <div class="container">
+        <div class="row g-4 text-center animate-fade-up">
+            <div class="col-6 col-md-3">
+                <div class="stats-bar p-3"
+                    style="background: #fff; border: 1px solid var(--slate-200); border-radius: var(--border-radius-lg);">
+                    <div class="stat-number">500+</div>
+                    <div class="stat-text">Students</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stats-bar p-3"
+                    style="background: #fff; border: 1px solid var(--slate-200); border-radius: var(--border-radius-lg);">
+                    <div class="stat-number">50+</div>
+                    <div class="stat-text">Companies</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stats-bar p-3"
+                    style="background: #fff; border: 1px solid var(--slate-200); border-radius: var(--border-radius-lg);">
+                    <div class="stat-number">95%</div>
+                    <div class="stat-text">Placement Rate</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stats-bar p-3"
+                    style="background: #fff; border: 1px solid var(--slate-200); border-radius: var(--border-radius-lg);">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-text">Available</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
 <section class="py-5">
     <div class="container">
-        <div class="row text-center mb-5 animate-fade-up">
-            <div class="col-lg-8 mx-auto">
-                <span class="text-primary fw-bold text-uppercase letter-spacing-2">Workflow</span>
-                <h2 class="display-6 fw-bold mb-3 mt-2 text-gradient">How It Works</h2>
-                <p class="lead text-muted">
-                    Simple steps to get started with the Resume Bank Management System.
-                </p>
-            </div>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-md-3 text-center animate-fade-up delay-100">
-                <div class="mb-3">
-                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center shadow-lg"
-                        style="width: 60px; height: 60px;">
-                        <span class="fw-bold fs-4">1</span>
-                    </div>
-                </div>
-                <h5 class="fw-bold">Register</h5>
-                <p class="text-muted">Students register with their details and create an account.</p>
-            </div>
-
-            <div class="col-md-3 text-center animate-fade-up delay-200">
-                <div class="mb-3">
-                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center shadow-lg"
-                        style="width: 60px; height: 60px;">
-                        <span class="fw-bold fs-4">2</span>
-                    </div>
-                </div>
-                <h5 class="fw-bold">Upload Resume</h5>
-                <p class="text-muted">Upload your resume in PDF format and update your profile.</p>
-            </div>
-
-            <div class="col-md-3 text-center animate-fade-up delay-300">
-                <div class="mb-3">
-                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center shadow-lg"
-                        style="width: 60px; height: 60px;">
-                        <span class="fw-bold fs-4">3</span>
-                    </div>
-                </div>
-                <h5 class="fw-bold">TPO Management</h5>
-                <p class="text-muted">TPOs can view, filter, and manage student data efficiently.</p>
-            </div>
-
-            <div class="col-md-3 text-center animate-fade-up delay-100">
-                <div class="mb-3">
-                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center shadow-lg"
-                        style="width: 60px; height: 60px;">
-                        <span class="fw-bold fs-4">4</span>
-                    </div>
-                </div>
-                <h5 class="fw-bold">Analytics</h5>
-                <p class="text-muted">Generate reports and view analytics for better decision making.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Call to Action -->
-<section class="py-5 bg-light-subtle">
-    <div class="container">
-        <div class="row justify-content-center animate-fade-up">
-            <div class="col-lg-8 text-center">
-                <h2 class="display-6 fw-bold mb-4">Ready to Get Started?</h2>
-                <p class="lead mb-4 text-muted">
-                    Join thousands of students and TPOs who are already using our system to streamline their placement
-                    process.
-                </p>
-                <div class="d-flex gap-3 justify-content-center">
-                    <a href="{% url 'students:register' %}" class="btn btn-primary btn-lg shadow-lg">
-                        <i class="fas fa-user-plus me-2"></i>Register as Student
-                    </a>
-                    <a href="{% url 'tpo:login' %}" class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-sign-in-alt me-2"></i>TPO Login
-                    </a>
-                </div>
+        <div class="cta-gradient text-center animate-fade-up">
+            <h2 class="display-6 fw-bold mb-3" style="color: #fff;">Ready to Get Started?</h2>
+            <p class="mb-4" style="color: rgba(255,255,255,0.75); max-width: 500px; margin: 0 auto;">
+                Join students and TPOs who are already using our system to streamline their placement process.
+            </p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="{% url 'accounts:student_register' %}" class="btn btn-light btn-lg hover-lift shadow">
+                    <i class="bi bi-person-plus me-2"></i>Register as Student
+                </a>
+                <a href="{% url 'accounts:tpo_login' %}" class="btn btn-outline-light btn-lg hover-lift">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>TPO Login
+                </a>
             </div>
         </div>
     </div>

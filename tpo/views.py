@@ -1,103 +1,40 @@
 """
-Views for TPO dashboard and student management.
+Views for the TPO admin portal.
+Handles student directory, analytics, drive management, and data exports.
+
+All views use @admin_required to ensure only TPO admins can access them.
+(Authentication views are in accounts/views.py)
 """
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.http import HttpResponse, JsonResponse
-from django.db.models import Q, Count, Avg
+from django.http import HttpResponse
+from django.db.models import Count, Avg
 from django.core.paginator import Paginator
+from accounts.decorators import admin_required
 from students.models import Student
-from .forms import TPOLoginForm, StudentFilterForm, PlacementStatusUpdateForm
+from .models import Drive, Application
+from .forms import StudentFilterForm, PlacementStatusUpdateForm, DriveForm, ApplicationStatusForm
+from .utils import apply_student_filters
+from collections import Counter
 import csv
 import os
 import zipfile
-from io import StringIO
-from collections import Counter
 
-def is_tpo(user):
-    """Check if user is TPO (staff member)."""
-    return user.is_authenticated and user.is_staff
 
-def tpo_login(request):
-    """
-    Handle TPO login.
-    """
-    if request.method == 'POST':
-        form = TPOLoginForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(request, username=username, password=password)
-            
-            if user is not None and user.is_staff:
-                login(request, user)
-                messages.success(request, f'Welcome, {user.get_full_name() or user.username}!')
-                return redirect('tpo:dashboard')
-            else:
-                messages.error(request, 'Invalid credentials or insufficient permissions.')
-    else:
-        form = TPOLoginForm()
-    
-    return render(request, 'tpo/login.html', {'form': form})
+# ──────────────────────────────────────────────
+# Student Directory & Dashboard
+# ──────────────────────────────────────────────
 
-@login_required
-@user_passes_test(is_tpo)
+@admin_required
 def tpo_dashboard(request):
-    """
-    TPO dashboard with student list and filtering.
-    """
-    # Get filter form data
+    """TPO dashboard — student directory with search, filter, and sort."""
     form = StudentFilterForm(request.GET)
-    students = Student.objects.all()
-    
-    if form.is_valid():
-        # Apply filters
-        search = form.cleaned_data.get('search')
-        if search:
-            students = students.filter(
-                Q(name__icontains=search) | Q(roll_no__icontains=search)
-            )
-        
-        branch = form.cleaned_data.get('branch')
-        if branch:
-            students = students.filter(branch=branch)
-        
-        cgpa_min = form.cleaned_data.get('cgpa_min')
-        if cgpa_min is not None:
-            students = students.filter(cgpa__gte=cgpa_min)
-        
-        cgpa_max = form.cleaned_data.get('cgpa_max')
-        if cgpa_max is not None:
-            students = students.filter(cgpa__lte=cgpa_max)
-        
-        skills = form.cleaned_data.get('skills')
-        if skills:
-            skill_list = [skill.strip() for skill in skills.split(',') if skill.strip()]
-            for skill in skill_list:
-                students = students.filter(skills__icontains=skill)
-        
-        placement_status = form.cleaned_data.get('placement_status')
-        if placement_status:
-            students = students.filter(placement_status=placement_status)
-        
-        # Apply sorting - only if sort_by is not empty
-        sort_by = form.cleaned_data.get('sort_by')
-        if sort_by:
-            students = students.order_by(sort_by)
-        else:
-            # Default sorting by creation date (newest first)
-            students = students.order_by('-created_at')
-    else:
-        # Default sorting if form is not valid
-        students = students.order_by('-created_at')
-    
-    # Pagination
-    paginator = Paginator(students, 20)  # 20 students per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
+    students = apply_student_filters(Student.objects.all(), form)
+
+    # Pagination — 20 students per page
+    paginator = Paginator(students, 20)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
     context = {
         'form': form,
         'page_obj': page_obj,
@@ -105,74 +42,12 @@ def tpo_dashboard(request):
     }
     return render(request, 'tpo/dashboard.html', context)
 
-@login_required
-@user_passes_test(is_tpo)
-def tpo_analytics(request):
-    """
-    Analytics dashboard with charts and statistics.
-    """
-    # Get all students
-    students = Student.objects.all()
-    total_students = students.count()
-    
-    if total_students == 0:
-        context = {
-            'total_students': 0,
-            'no_data': True
-        }
-        return render(request, 'tpo/analytics.html', context)
-    
-    # CGPA Distribution
-    cgpa_ranges = {
-        '9.0-10.0': students.filter(cgpa__gte=9.0).count(),
-        '8.0-8.99': students.filter(cgpa__gte=8.0, cgpa__lt=9.0).count(),
-        '7.0-7.99': students.filter(cgpa__gte=7.0, cgpa__lt=8.0).count(),
-        '6.0-6.99': students.filter(cgpa__gte=6.0, cgpa__lt=7.0).count(),
-        'Below 6.0': students.filter(cgpa__lt=6.0).count(),
-    }
-    
-    # Branch Distribution
-    branch_stats = students.values('branch').annotate(count=Count('id')).order_by('-count')
-    
-    # Placement Status Distribution
-    placement_stats = students.values('placement_status').annotate(count=Count('id'))
-    
-    # Skills Analysis
-    all_skills = []
-    for student in students:
-        all_skills.extend(student.get_skills_list())
-    
-    skill_counts = Counter(all_skills)
-    top_skills = dict(skill_counts.most_common(10))
-    
-    # Average CGPA by branch
-    avg_cgpa_by_branch = students.values('branch').annotate(avg_cgpa=Avg('cgpa')).order_by('-avg_cgpa')
-    
-    # Placement rate
-    placed_count = students.filter(placement_status='placed').count()
-    placement_rate = (placed_count / total_students * 100) if total_students > 0 else 0
-    
-    context = {
-        'total_students': total_students,
-        'cgpa_ranges': cgpa_ranges,
-        'branch_stats': list(branch_stats),
-        'placement_stats': list(placement_stats),
-        'top_skills': top_skills,
-        'avg_cgpa_by_branch': list(avg_cgpa_by_branch),
-        'placement_rate': round(placement_rate, 2),
-        'placed_count': placed_count,
-        'no_data': False
-    }
-    return render(request, 'tpo/analytics.html', context)
 
-@login_required
-@user_passes_test(is_tpo)
+@admin_required
 def student_detail(request, student_id):
-    """
-    View detailed student information.
-    """
+    """View student details and update placement status."""
     student = get_object_or_404(Student, id=student_id)
-    
+
     if request.method == 'POST':
         form = PlacementStatusUpdateForm(request.POST)
         if form.is_valid():
@@ -186,9 +61,9 @@ def student_detail(request, student_id):
         form = PlacementStatusUpdateForm(initial={
             'placement_status': student.placement_status,
             'company_name': student.company_name,
-            'package': student.package
+            'package': student.package,
         })
-    
+
     context = {
         'student': student,
         'form': form,
@@ -196,18 +71,77 @@ def student_detail(request, student_id):
     }
     return render(request, 'tpo/student_detail.html', context)
 
-@login_required
-@user_passes_test(is_tpo)
+
+# ──────────────────────────────────────────────
+# Analytics
+# ──────────────────────────────────────────────
+
+@admin_required
+def tpo_analytics(request):
+    """Analytics dashboard with charts — CGPA, branch, placement, skills."""
+    students = Student.objects.all()
+    total_students = students.count()
+
+    if total_students == 0:
+        return render(request, 'tpo/analytics.html', {
+            'total_students': 0, 'no_data': True
+        })
+
+    # CGPA Distribution
+    cgpa_distribution = {
+        '9.0-10.0': students.filter(cgpa__gte=9.0).count(),
+        '8.0-8.99': students.filter(cgpa__gte=8.0, cgpa__lt=9.0).count(),
+        '7.0-7.99': students.filter(cgpa__gte=7.0, cgpa__lt=8.0).count(),
+        '6.0-6.99': students.filter(cgpa__gte=6.0, cgpa__lt=7.0).count(),
+        'Below 6.0': students.filter(cgpa__lt=6.0).count(),
+    }
+
+    # Branch Distribution
+    branch_stats = list(students.values('branch').annotate(count=Count('id')).order_by('-count'))
+
+    # Placement Statistics
+    placed_count = students.filter(placement_status='placed').count()
+    placement_rate = round(placed_count / total_students * 100, 2)
+    placement_stats = list(students.values('placement_status').annotate(count=Count('id')))
+
+    # Top Skills
+    all_skills = []
+    for student in students:
+        all_skills.extend(student.get_skills_list())
+    top_skills = dict(Counter(all_skills).most_common(10))
+
+    # Average CGPA by branch
+    avg_cgpa_by_branch = list(
+        students.values('branch').annotate(avg_cgpa=Avg('cgpa')).order_by('-avg_cgpa')
+    )
+
+    context = {
+        'total_students': total_students,
+        'cgpa_distribution': cgpa_distribution,
+        'branch_stats': branch_stats,
+        'placement_stats': placement_stats,
+        'top_skills': top_skills,
+        'avg_cgpa_by_branch': avg_cgpa_by_branch,
+        'placement_rate': placement_rate,
+        'placed_count': placed_count,
+        'no_data': False,
+    }
+    return render(request, 'tpo/analytics.html', context)
+
+
+# ──────────────────────────────────────────────
+# Resume Downloads
+# ──────────────────────────────────────────────
+
+@admin_required
 def download_resume(request, student_id):
-    """
-    Download individual student resume.
-    """
+    """Download a specific student's resume."""
     student = get_object_or_404(Student, id=student_id)
-    
+
     if not student.resume:
         messages.error(request, 'No resume uploaded for this student.')
         return redirect('tpo:student_detail', student_id=student_id)
-    
+
     if os.path.exists(student.resume.path):
         with open(student.resume.path, 'rb') as fh:
             response = HttpResponse(fh.read(), content_type='application/pdf')
@@ -217,71 +151,30 @@ def download_resume(request, student_id):
         messages.error(request, 'Resume file not found.')
         return redirect('tpo:student_detail', student_id=student_id)
 
-@login_required
-@user_passes_test(is_tpo)
+
+# ──────────────────────────────────────────────
+# Data Exports (CSV & ZIP)
+# ──────────────────────────────────────────────
+
+@admin_required
 def export_csv(request):
-    """
-    Export filtered student data to CSV.
-    """
-    # Apply same filters as dashboard
+    """Export filtered student data as a CSV file."""
     form = StudentFilterForm(request.GET)
-    students = Student.objects.all()
-    
-    if form.is_valid():
-        # Apply filters (same logic as dashboard)
-        search = form.cleaned_data.get('search')
-        if search:
-            students = students.filter(
-                Q(name__icontains=search) | Q(roll_no__icontains=search)
-            )
-        
-        branch = form.cleaned_data.get('branch')
-        if branch:
-            students = students.filter(branch=branch)
-        
-        cgpa_min = form.cleaned_data.get('cgpa_min')
-        if cgpa_min is not None:
-            students = students.filter(cgpa__gte=cgpa_min)
-        
-        cgpa_max = form.cleaned_data.get('cgpa_max')
-        if cgpa_max is not None:
-            students = students.filter(cgpa__lte=cgpa_max)
-        
-        skills = form.cleaned_data.get('skills')
-        if skills:
-            skill_list = [skill.strip() for skill in skills.split(',') if skill.strip()]
-            for skill in skill_list:
-                students = students.filter(skills__icontains=skill)
-        
-        placement_status = form.cleaned_data.get('placement_status')
-        if placement_status:
-            students = students.filter(placement_status=placement_status)
-        
-        # Apply sorting - only if sort_by is not empty
-        sort_by = form.cleaned_data.get('sort_by')
-        if sort_by:
-            students = students.order_by(sort_by)
-        else:
-            # Default sorting by creation date (newest first)
-            students = students.order_by('-created_at')
-    else:
-        # Default sorting if form is not valid
-        students = students.order_by('-created_at')
-    
-    # Create CSV response
+    students = apply_student_filters(Student.objects.all(), form)
+
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="students_data.csv"'
-    
+
     writer = csv.writer(response)
     writer.writerow([
-        'Name', 'Roll No', 'Email', 'Branch', 'CGPA', 'Skills', 
-        'Placement Status', 'Company Name', 'Package (LPA)', 'Created Date'
+        'Roll No', 'Name', 'Email', 'Branch', 'CGPA', 'Skills',
+        'Status', 'Company', 'Package', 'Has Resume'
     ])
-    
+
     for student in students:
         writer.writerow([
-            student.name,
             student.roll_no,
+            student.name,
             student.email,
             student.get_branch_display_name(),
             student.cgpa,
@@ -289,80 +182,88 @@ def export_csv(request):
             student.get_placement_status_display(),
             student.company_name or '',
             student.package or '',
-            student.created_at.strftime('%Y-%m-%d')
+            'Yes' if student.resume else 'No',
         ])
-    
+
     return response
 
-@login_required
-@user_passes_test(is_tpo)
+
+@admin_required
 def bulk_download_resumes(request):
-    """
-    Download all resumes as a ZIP file.
-    """
-    # Apply same filters as dashboard
+    """Download all filtered student resumes as a ZIP file."""
     form = StudentFilterForm(request.GET)
-    students = Student.objects.all()
-    
-    if form.is_valid():
-        # Apply filters (same logic as dashboard)
-        search = form.cleaned_data.get('search')
-        if search:
-            students = students.filter(
-                Q(name__icontains=search) | Q(roll_no__icontains=search)
-            )
-        
-        branch = form.cleaned_data.get('branch')
-        if branch:
-            students = students.filter(branch=branch)
-        
-        cgpa_min = form.cleaned_data.get('cgpa_min')
-        if cgpa_min is not None:
-            students = students.filter(cgpa__gte=cgpa_min)
-        
-        cgpa_max = form.cleaned_data.get('cgpa_max')
-        if cgpa_max is not None:
-            students = students.filter(cgpa__lte=cgpa_max)
-        
-        skills = form.cleaned_data.get('skills')
-        if skills:
-            skill_list = [skill.strip() for skill in skills.split(',') if skill.strip()]
-            for skill in skill_list:
-                students = students.filter(skills__icontains=skill)
-        
-        placement_status = form.cleaned_data.get('placement_status')
-        if placement_status:
-            students = students.filter(placement_status=placement_status)
-        
-        # Apply sorting - only if sort_by is not empty
-        sort_by = form.cleaned_data.get('sort_by')
-        if sort_by:
-            students = students.order_by(sort_by)
-        else:
-            # Default sorting by creation date (newest first)
-            students = students.order_by('-created_at')
-    else:
-        # Default sorting if form is not valid
-        students = students.order_by('-created_at')
-    
-    # Create ZIP file
+    students = apply_student_filters(Student.objects.all(), form)
+
     response = HttpResponse(content_type='application/zip')
     response['Content-Disposition'] = 'attachment; filename="student_resumes.zip"'
-    
+
     with zipfile.ZipFile(response, 'w') as zip_file:
         for student in students:
             if student.resume and os.path.exists(student.resume.path):
-                filename = f"{student.roll_no}_{student.name}_resume.pdf"
+                filename = f"{student.roll_no}_{student.name}.pdf"
                 zip_file.write(student.resume.path, filename)
-    
+
     return response
 
-@login_required
-@user_passes_test(is_tpo)
-def tpo_logout(request):
-    """
-    Handle TPO logout.
-    """
-    logout(request)
-    messages.success(request, 'You have been logged out successfully.')
-    return redirect('home') 
+
+# ──────────────────────────────────────────────
+# Placement Drive Management
+# ──────────────────────────────────────────────
+
+@admin_required
+def drives_list(request):
+    """List all placement drives."""
+    drives = Drive.objects.all().order_by('-created_at')
+
+    # Add applicant count for each drive
+    for drive in drives:
+        drive.applicant_count = drive.applications.count()
+
+    context = {'drives': drives}
+    return render(request, 'tpo/drives/list.html', context)
+
+
+@admin_required
+def create_drive(request):
+    """Create a new placement drive."""
+    if request.method == 'POST':
+        form = DriveForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Placement drive created successfully!')
+            return redirect('tpo:drives_list')
+    else:
+        form = DriveForm()
+
+    return render(request, 'tpo/drives/create.html', {'form': form})
+
+
+@admin_required
+def drive_applicants(request, drive_id):
+    """View all students who applied to a specific drive."""
+    drive = get_object_or_404(Drive, id=drive_id)
+    applications = drive.applications.select_related('student').all()
+
+    context = {
+        'drive': drive,
+        'applications': applications,
+    }
+    return render(request, 'tpo/drives/applicants.html', context)
+
+
+@admin_required
+def update_app_status(request, app_id):
+    """Update an individual application's status (shortlist/reject/offer)."""
+    application = get_object_or_404(Application, id=app_id)
+
+    if request.method == 'POST':
+        form = ApplicationStatusForm(request.POST)
+        if form.is_valid():
+            application.status = form.cleaned_data['status']
+            application.save()
+            messages.success(
+                request,
+                f'Application status for {application.student.name} updated to {application.get_status_display()}.'
+            )
+
+    return redirect('tpo:drive_applicants', drive_id=application.drive.id)

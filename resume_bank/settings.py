@@ -1,5 +1,6 @@
 """
 Django settings for resume_bank project.
+Resume Bank Management System — Training & Placement Cell
 """
 
 import os
@@ -9,6 +10,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# For MCA project, this is fine. In production, use environment variables.
 SECRET_KEY = 'django-insecure-your-secret-key-here-change-in-production'
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -16,7 +18,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# ──────────────────────────────────────────────
 # Application definition
+# ──────────────────────────────────────────────
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -24,11 +28,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'students',  # Student management app
-    'tpo',      # TPO management app
+    # Third-party
     'crispy_forms',
     'crispy_bootstrap5',
+    # Project apps
+    'accounts',      # Authentication & custom User model
+    'students',      # Student portal
+    'tpo',           # TPO admin portal
+    'core',          # Shared templates & home page
 ]
+
+# ──────────────────────────────────────────────
+# Custom User Model
+# ──────────────────────────────────────────────
+AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -60,13 +73,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'resume_bank.wsgi.application'
 
-# Database
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
+# ──────────────────────────────────────────────
+# Database — MySQL
+# ──────────────────────────────────────────────
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'resume_bank_db',
+        'NAME': 'tnp_db',
         'USER': 'root',
         'PASSWORD': '',
         'HOST': 'localhost',
@@ -78,63 +91,64 @@ DATABASES = {
     }
 }
 
+# ──────────────────────────────────────────────
 # Password validation
-# https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
-
+# ──────────────────────────────────────────────
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# ──────────────────────────────────────────────
 # Internationalization
-# https://docs.djangoproject.com/en/3.2/topics/i18n/
-
+# ──────────────────────────────────────────────
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# ──────────────────────────────────────────────
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
-
+# ──────────────────────────────────────────────
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-# Media files (Uploaded files)
+# ──────────────────────────────────────────────
+# Media files (Uploaded resumes)
+# ──────────────────────────────────────────────
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Crispy Forms
-CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
-CRISPY_TEMPLATE_PACK = "bootstrap5"
-
-# Login URLs
-LOGIN_URL = '/student/login/'
-LOGIN_REDIRECT_URL = '/student/dashboard/'
-LOGOUT_REDIRECT_URL = '/'
-
+# ──────────────────────────────────────────────
 # File Upload Settings
+# ──────────────────────────────────────────────
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB max upload
 MAX_UPLOAD_SIZE = 10485760  # 10MB
 ALLOWED_UPLOAD_EXTENSIONS = ['.pdf']
 
-# Messages
+# ──────────────────────────────────────────────
+# Auth URLs
+# ──────────────────────────────────────────────
+LOGIN_URL = '/auth/student/login'
+LOGIN_REDIRECT_URL = '/student/dashboard'
+LOGOUT_REDIRECT_URL = '/'
+
+# ──────────────────────────────────────────────
+# Crispy Forms (Bootstrap 5)
+# ──────────────────────────────────────────────
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+# ──────────────────────────────────────────────
+# Default primary key field type
+# ──────────────────────────────────────────────
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ──────────────────────────────────────────────
+# Messages framework — Bootstrap alert classes
+# ──────────────────────────────────────────────
 from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
     messages.DEBUG: 'alert-info',
@@ -142,4 +156,4 @@ MESSAGE_TAGS = {
     messages.SUCCESS: 'alert-success',
     messages.WARNING: 'alert-warning',
     messages.ERROR: 'alert-danger',
-} 
+}
