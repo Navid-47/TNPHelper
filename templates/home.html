@@ -4,19 +4,24 @@
 
 {% block content %}
 <!-- Hero Section -->
+<!-- Hero Section -->
 <section class="hero-section">
-    <div class="container">
+    <div class="container position-relative" style="z-index: 2;">
         <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4">
-                    Resume Bank Management System
+            <div class="col-lg-6 animate-fade-up">
+                <span class="badge bg-white text-primary mb-3 rounded-pill px-3 py-2 shadow-sm">
+                    <i class="fas fa-star me-1"></i> #1 Placement Platform
+                </span>
+                <h1 class="display-4 hero-title mb-4">
+                    Resume Bank <br>
+                    <span class="text-white-50">Management System</span>
                 </h1>
-                <p class="lead mb-4">
-                    A comprehensive solution for managing student resumes and placement data. 
-                    Streamline your college's Training & Placement Office operations.
+                <p class="hero-subtitle mb-4">
+                    A comprehensive solution for managing student resumes and placement data.
+                    Streamline your college's Training & Placement Office operations with our advanced tools.
                 </p>
                 <div class="d-flex gap-3">
-                    <a href="{% url 'students:register' %}" class="btn btn-light btn-lg">
+                    <a href="{% url 'students:register' %}" class="btn btn-light btn-lg shadow-lg">
                         <i class="fas fa-user-plus me-2"></i>Student Registration
                     </a>
                     <a href="{% url 'tpo:login' %}" class="btn btn-outline-light btn-lg">
@@ -24,84 +29,99 @@
                     </a>
                 </div>
             </div>
-            <div class="col-lg-6 text-center">
-                <i class="fas fa-graduation-cap" style="font-size: 8rem; opacity: 0.3;"></i>
+            <div class="col-lg-6 text-center animate-fade-up delay-200">
+                <div class="position-relative">
+                    <div class="position-absolute top-50 start-50 translate-middle"
+                        style="width: 300px; height: 300px; background: white; filter: blur(100px); opacity: 0.2; border-radius: 50%;">
+                    </div>
+                    <i class="fas fa-graduation-cap position-relative"
+                        style="font-size: 10rem; color: rgba(255,255,255,0.9); transform: rotate(-10deg);"></i>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
 <!-- Features Section -->
-<section class="py-5">
+<section class="py-5 bg-light-subtle">
     <div class="container">
-        <div class="row text-center mb-5">
+        <div class="row text-center mb-5 animate-fade-up">
             <div class="col-lg-8 mx-auto">
-                <h2 class="display-6 fw-bold mb-3">Key Features</h2>
+                <span class="text-primary fw-bold text-uppercase letter-spacing-2">Features</span>
+                <h2 class="display-6 fw-bold mb-3 mt-2 text-gradient">Why Choose Us?</h2>
                 <p class="lead text-muted">
                     Everything you need to manage student resumes and placement data efficiently.
                 </p>
             </div>
         </div>
-        
+
         <div class="row g-4">
             <!-- Student Features -->
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 text-center p-4">
+            <div class="col-md-6 col-lg-4 animate-fade-up delay-100">
+                <div class="card h-100 border-0 shadow-sm">
                     <div class="card-body">
-                        <div class="mb-3">
-                            <i class="fas fa-user-graduate text-primary" style="font-size: 3rem;"></i>
+                        <div class="feature-icon mb-4">
+                            <i class="fas fa-user-graduate"></i>
                         </div>
-                        <h5 class="card-title">Student Portal</h5>
-                        <p class="card-text">
-                            Register, upload resumes, and manage your profile. Update placement status and track your progress.
+                        <h5 class="card-title fw-bold">Student Portal</h5>
+                        <p class="card-text text-muted mb-4">
+                            Register, upload resumes, and manage your profile. Update placement status and track your
+                            progress.
                         </p>
                         <ul class="list-unstyled text-start">
-                            <li><i class="fas fa-check text-success me-2"></i>Easy registration</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Resume upload (PDF)</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Profile management</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Placement status updates</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Easy registration</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Resume upload (PDF)
+                            </li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Profile management
+                            </li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Placement status
+                                updates</li>
                         </ul>
                     </div>
                 </div>
             </div>
-            
+
             <!-- TPO Features -->
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 text-center p-4">
+            <div class="col-md-6 col-lg-4 animate-fade-up delay-200">
+                <div class="card h-100 border-0 shadow-sm">
                     <div class="card-body">
-                        <div class="mb-3">
-                            <i class="fas fa-chart-line text-primary" style="font-size: 3rem;"></i>
+                        <div class="feature-icon mb-4">
+                            <i class="fas fa-chart-line"></i>
                         </div>
-                        <h5 class="card-title">TPO Dashboard</h5>
-                        <p class="card-text">
-                            Comprehensive dashboard for Training & Placement Officers with advanced filtering and analytics.
+                        <h5 class="card-title fw-bold">TPO Dashboard</h5>
+                        <p class="card-text text-muted mb-4">
+                            Comprehensive dashboard for Training & Placement Officers with advanced filtering and
+                            analytics.
                         </p>
                         <ul class="list-unstyled text-start">
-                            <li><i class="fas fa-check text-success me-2"></i>Student management</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Advanced filtering</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Resume downloads</li>
-                            <li><i class="fas fa-check text-success me-2"></i>CSV export</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Student management
+                            </li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Advanced filtering
+                            </li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Resume downloads</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>CSV export</li>
                         </ul>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Analytics Features -->
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 text-center p-4">
+            <div class="col-md-6 col-lg-4 animate-fade-up delay-300">
+                <div class="card h-100 border-0 shadow-sm">
                     <div class="card-body">
-                        <div class="mb-3">
-                            <i class="fas fa-chart-pie text-primary" style="font-size: 3rem;"></i>
+                        <div class="feature-icon mb-4">
+                            <i class="fas fa-chart-pie"></i>
                         </div>
-                        <h5 class="card-title">Analytics & Reports</h5>
-                        <p class="card-text">
-                            Visual analytics with charts and reports to track placement statistics and student performance.
+                        <h5 class="card-title fw-bold">Analytics & Reports</h5>
+                        <p class="card-text text-muted mb-4">
+                            Visual analytics with charts and reports to track placement statistics and student
+                            performance.
                         </p>
                         <ul class="list-unstyled text-start">
-                            <li><i class="fas fa-check text-success me-2"></i>CGPA distribution</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Skills analysis</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Placement rates</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Branch-wise stats</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>CGPA distribution</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Skills analysis</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Placement rates</li>
+                            <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i>Branch-wise stats</li>
                         </ul>
                     </div>
                 </div>
@@ -111,55 +131,60 @@
 </section>
 
 <!-- How It Works Section -->
-<section class="py-5 bg-light">
+<section class="py-5">
     <div class="container">
-        <div class="row text-center mb-5">
+        <div class="row text-center mb-5 animate-fade-up">
             <div class="col-lg-8 mx-auto">
-                <h2 class="display-6 fw-bold mb-3">How It Works</h2>
+                <span class="text-primary fw-bold text-uppercase letter-spacing-2">Workflow</span>
+                <h2 class="display-6 fw-bold mb-3 mt-2 text-gradient">How It Works</h2>
                 <p class="lead text-muted">
                     Simple steps to get started with the Resume Bank Management System.
                 </p>
             </div>
         </div>
-        
+
         <div class="row g-4">
-            <div class="col-md-3 text-center">
+            <div class="col-md-3 text-center animate-fade-up delay-100">
                 <div class="mb-3">
-                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                        <span class="fw-bold">1</span>
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center shadow-lg"
+                        style="width: 60px; height: 60px;">
+                        <span class="fw-bold fs-4">1</span>
                     </div>
                 </div>
-                <h5>Register</h5>
+                <h5 class="fw-bold">Register</h5>
                 <p class="text-muted">Students register with their details and create an account.</p>
             </div>
-            
-            <div class="col-md-3 text-center">
+
+            <div class="col-md-3 text-center animate-fade-up delay-200">
                 <div class="mb-3">
-                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                        <span class="fw-bold">2</span>
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center shadow-lg"
+                        style="width: 60px; height: 60px;">
+                        <span class="fw-bold fs-4">2</span>
                     </div>
                 </div>
-                <h5>Upload Resume</h5>
+                <h5 class="fw-bold">Upload Resume</h5>
                 <p class="text-muted">Upload your resume in PDF format and update your profile.</p>
             </div>
-            
-            <div class="col-md-3 text-center">
+
+            <div class="col-md-3 text-center animate-fade-up delay-300">
                 <div class="mb-3">
-                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                        <span class="fw-bold">3</span>
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center shadow-lg"
+                        style="width: 60px; height: 60px;">
+                        <span class="fw-bold fs-4">3</span>
                     </div>
                 </div>
-                <h5>TPO Management</h5>
+                <h5 class="fw-bold">TPO Management</h5>
                 <p class="text-muted">TPOs can view, filter, and manage student data efficiently.</p>
             </div>
-            
-            <div class="col-md-3 text-center">
+
+            <div class="col-md-3 text-center animate-fade-up delay-100">
                 <div class="mb-3">
-                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                        <span class="fw-bold">4</span>
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center shadow-lg"
+                        style="width: 60px; height: 60px;">
+                        <span class="fw-bold fs-4">4</span>
                     </div>
                 </div>
-                <h5>Analytics</h5>
+                <h5 class="fw-bold">Analytics</h5>
                 <p class="text-muted">Generate reports and view analytics for better decision making.</p>
             </div>
         </div>
@@ -167,16 +192,17 @@
 </section>
 
 <!-- Call to Action -->
-<section class="py-5">
+<section class="py-5 bg-light-subtle">
     <div class="container">
-        <div class="row justify-content-center">
+        <div class="row justify-content-center animate-fade-up">
             <div class="col-lg-8 text-center">
                 <h2 class="display-6 fw-bold mb-4">Ready to Get Started?</h2>
-                <p class="lead mb-4">
-                    Join thousands of students and TPOs who are already using our system to streamline their placement process.
+                <p class="lead mb-4 text-muted">
+                    Join thousands of students and TPOs who are already using our system to streamline their placement
+                    process.
                 </p>
                 <div class="d-flex gap-3 justify-content-center">
-                    <a href="{% url 'students:register' %}" class="btn btn-primary btn-lg">
+                    <a href="{% url 'students:register' %}" class="btn btn-primary btn-lg shadow-lg">
                         <i class="fas fa-user-plus me-2"></i>Register as Student
                     </a>
                     <a href="{% url 'tpo:login' %}" class="btn btn-outline-primary btn-lg">
@@ -187,4 +213,4 @@
         </div>
     </div>
 </section>
-{% endblock %} 
+{% endblock %}

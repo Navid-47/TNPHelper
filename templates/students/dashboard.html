@@ -6,19 +6,21 @@
 <div class="container py-5">
     <div class="row">
         <!-- Welcome Section -->
-        <div class="col-12 mb-4">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
+        <div class="col-12 mb-4 animate-fade-up">
+            <div class="card bg-primary text-white border-0 shadow-lg"
+                style="background: var(--gradient-hero) !important;">
+                <div class="card-body p-4">
                     <div class="row align-items-center">
                         <div class="col-md-8">
-                            <h2 class="mb-2">
+                            <h2 class="mb-2 fw-bold">
                                 <i class="fas fa-user-graduate me-2"></i>
                                 Welcome, {{ student.name }}!
                             </h2>
-                            <p class="mb-0">Manage your profile, upload resume, and track your placement status.</p>
+                            <p class="mb-0 opacity-75">Manage your profile, upload resume, and track your placement
+                                status.</p>
                         </div>
-                        <div class="col-md-4 text-md-end">
-                            <span class="status-badge status-{{ student.placement_status }}">
+                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                            <span class="badge bg-white text-primary px-3 py-2 shadow-sm rounded-pill">
                                 {{ student.get_placement_status_display }}
                             </span>
                         </div>
@@ -26,71 +28,63 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Profile Information -->
-        <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-user me-2"></i>
+        <div class="col-lg-8 animate-fade-up delay-100">
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <h5 class="mb-0 fw-bold text-gradient">
+                        <i class="fas fa-user me-2 text-primary"></i>
                         Profile Information
                     </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <strong>Name:</strong>
-                            <p class="text-muted">{{ student.name }}</p>
+                        <div class="col-md-6 mb-4">
+                            <label class="text-muted small text-uppercase fw-bold mb-1">Name</label>
+                            <p class="h6 mb-0">{{ student.name }}</p>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <strong>Roll Number:</strong>
-                            <p class="text-muted">{{ student.roll_no }}</p>
+                        <div class="col-md-6 mb-4">
+                            <label class="text-muted small text-uppercase fw-bold mb-1">Roll Number</label>
+                            <p class="h6 mb-0">{{ student.roll_no }}</p>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <strong>Email:</strong>
-                            <p class="text-muted">{{ student.email }}</p>
+                        <div class="col-md-6 mb-4">
+                            <label class="text-muted small text-uppercase fw-bold mb-1">Email</label>
+                            <p class="h6 mb-0">{{ student.email }}</p>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <strong>Branch:</strong>
-                            <p class="text-muted">{{ student.get_branch_display_name }}</p>
+                        <div class="col-md-6 mb-4">
+                            <label class="text-muted small text-uppercase fw-bold mb-1">Branch</label>
+                            <p class="h6 mb-0">{{ student.get_branch_display_name }}</p>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <strong>CGPA:</strong>
-                            <p class="text-muted">{{ student.cgpa }}</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <strong>Placement Status:</strong>
-                            <p>
-                                <span class="status-badge status-{{ student.placement_status }}">
-                                    {{ student.get_placement_status_display }}
-                                </span>
-                            </p>
+                        <div class="col-md-6 mb-4">
+                            <label class="text-muted small text-uppercase fw-bold mb-1">CGPA</label>
+                            <p class="h6 mb-0">{{ student.cgpa }}</p>
                         </div>
                         {% if student.is_placed %}
-                        <div class="col-md-6 mb-3">
-                            <strong>Company:</strong>
-                            <p class="text-muted">{{ student.company_name }}</p>
+                        <div class="col-md-6 mb-4">
+                            <label class="text-muted small text-uppercase fw-bold mb-1">Company</label>
+                            <p class="h6 mb-0">{{ student.company_name }}</p>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <strong>Package:</strong>
-                            <p class="text-muted">{{ student.package }} LPA</p>
+                        <div class="col-md-6 mb-4">
+                            <label class="text-muted small text-uppercase fw-bold mb-1">Package</label>
+                            <p class="h6 mb-0">{{ student.package }} LPA</p>
                         </div>
                         {% endif %}
                     </div>
-                    
-                    <div class="mb-3">
-                        <strong>Skills:</strong>
-                        <div class="mt-2">
+
+                    <div class="mb-4">
+                        <label class="text-muted small text-uppercase fw-bold mb-2">Skills</label>
+                        <div class="d-flex flex-wrap">
                             {% if skills_list %}
-                                {% for skill in skills_list %}
-                                    <span class="skill-badge">{{ skill }}</span>
-                                {% endfor %}
+                            {% for skill in skills_list %}
+                            <span class="skill-badge">{{ skill }}</span>
+                            {% endfor %}
                             {% else %}
-                                <p class="text-muted">No skills listed</p>
+                            <p class="text-muted small">No skills listed</p>
                             {% endif %}
                         </div>
                     </div>
-                    
+
                     <div class="d-flex gap-2">
                         <a href="{% url 'students:profile' %}" class="btn btn-primary">
                             <i class="fas fa-edit me-2"></i>
@@ -100,68 +94,74 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Resume Status -->
-        <div class="col-lg-4">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-file-pdf me-2"></i>
+        <div class="col-lg-4 animate-fade-up delay-200">
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <h5 class="mb-0 fw-bold text-gradient">
+                        <i class="fas fa-file-pdf me-2 text-primary"></i>
                         Resume Status
                     </h5>
                 </div>
-                <div class="card-body text-center">
+                <div class="card-body p-4 text-center">
                     {% if student.resume %}
-                        <div class="mb-3">
-                            <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
+                    <div class="mb-3">
+                        <div class="feature-icon mx-auto bg-success bg-opacity-10 text-success"
+                            style="width: 80px; height: 80px;">
+                            <i class="fas fa-check-circle" style="font-size: 2.5rem;"></i>
                         </div>
-                        <h6 class="text-success">Resume Uploaded</h6>
-                        <p class="text-muted small">{{ student.get_resume_filename }}</p>
-                        <div class="d-grid gap-2">
-                            <a href="{% url 'students:download_resume' %}" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-download me-2"></i>
-                                Download Resume
-                            </a>
-                            <a href="{% url 'students:upload_resume' %}" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-upload me-2"></i>
-                                Update Resume
-                            </a>
-                        </div>
+                    </div>
+                    <h6 class="text-success fw-bold">Resume Uploaded</h6>
+                    <p class="text-muted small mb-4">{{ student.get_resume_filename }}</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'students:download_resume' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-download me-2"></i>
+                            Download
+                        </a>
+                        <a href="{% url 'students:upload_resume' %}" class="btn btn-light btn-sm">
+                            <i class="fas fa-upload me-2"></i>
+                            Update
+                        </a>
+                    </div>
                     {% else %}
-                        <div class="mb-3">
-                            <i class="fas fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                    <div class="mb-3">
+                        <div class="feature-icon mx-auto bg-warning bg-opacity-10 text-warning"
+                            style="width: 80px; height: 80px;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 2.5rem;"></i>
                         </div>
-                        <h6 class="text-warning">No Resume Uploaded</h6>
-                        <p class="text-muted small">Please upload your resume to complete your profile.</p>
-                        <div class="d-grid">
-                            <a href="{% url 'students:upload_resume' %}" class="btn btn-primary">
-                                <i class="fas fa-upload me-2"></i>
-                                Upload Resume
-                            </a>
-                        </div>
+                    </div>
+                    <h6 class="text-warning fw-bold">No Resume Uploaded</h6>
+                    <p class="text-muted small mb-4">Please upload your resume to complete your profile.</p>
+                    <div class="d-grid">
+                        <a href="{% url 'students:upload_resume' %}" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>
+                            Upload Resume
+                        </a>
+                    </div>
                     {% endif %}
                 </div>
             </div>
-            
+
             <!-- Quick Actions -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-bolt me-2"></i>
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <h5 class="mb-0 fw-bold text-gradient">
+                        <i class="fas fa-bolt me-2 text-primary"></i>
                         Quick Actions
                     </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <div class="d-grid gap-2">
-                        <a href="{% url 'students:profile' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-user-edit me-2"></i>
+                        <a href="{% url 'students:profile' %}" class="btn btn-light text-start">
+                            <i class="fas fa-user-edit me-2 text-primary"></i>
                             Update Profile
                         </a>
-                        <a href="{% url 'students:upload_resume' %}" class="btn btn-outline-success">
-                            <i class="fas fa-file-upload me-2"></i>
+                        <a href="{% url 'students:upload_resume' %}" class="btn btn-light text-start">
+                            <i class="fas fa-file-upload me-2 text-success"></i>
                             Upload/Update Resume
                         </a>
-                        <a href="{% url 'students:logout' %}" class="btn btn-outline-danger">
+                        <a href="{% url 'students:logout' %}" class="btn btn-light text-start text-danger">
                             <i class="fas fa-sign-out-alt me-2"></i>
                             Logout
                         </a>
@@ -171,4 +171,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

@@ -1,0 +1,345 @@
+:root {
+    /* Vercel/Geist Design System - Monochrome */
+    --foreground: #000000;
+    --background: #ffffff;
+    --accents-1: #fafafa;
+    --accents-2: #eaeaea;
+    --accents-3: #999999;
+    --accents-4: #888888;
+    --accents-5: #666666;
+    --accents-6: #444444;
+    --accents-7: #333333;
+    --accents-8: #111111;
+
+    --primary-color: #000000;
+    --primary-hover: #333333;
+    --success: #0070f3;
+    /* Vercel Blue for success/actions */
+    --error: #e00;
+    --warning: #f5a623;
+
+    --border-color: var(--accents-2);
+    --radius: 6px;
+
+    /* Shadows - Ultra subtle */
+    --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.12);
+
+    /* Gradients (Subtle) */
+    --gradient-hero: linear-gradient(180deg, #000000 0%, #333333 100%);
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--background);
+    color: var(--foreground);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Navbar Customization */
+.navbar {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: saturate(180%) blur(5px);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    height: 70px;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--foreground) !important;
+    letter-spacing: -0.02em;
+}
+
+.nav-link {
+    font-size: 0.95rem;
+    color: var(--accents-5) !important;
+    transition: color 0.15s ease;
+}
+
+.nav-link:hover {
+    color: var(--foreground) !important;
+}
+
+/* Hero Section */
+.hero-section {
+    background: var(--background);
+    color: var(--foreground);
+    padding: 120px 0 80px;
+    position: relative;
+    text-align: center;
+}
+
+.hero-title {
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(180deg, #000 0%, #444 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+.hero-subtitle {
+    font-size: 1.35rem;
+    color: var(--accents-5);
+    margin-bottom: 2.5rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Cards & Containers */
+.card {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    transition: all 0.2s ease;
+    background: var(--background);
+    box-shadow: var(--shadow-sm);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--foreground);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background: var(--background);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem 1.5rem;
+}
+
+.card-header h3,
+.card-header h5 {
+    color: var(--foreground);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Feature Icons */
+.feature-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--accents-1);
+    color: var(--foreground);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+}
+
+.card:hover .feature-icon {
+    background: var(--foreground);
+    color: var(--background);
+    border-color: var(--foreground);
+}
+
+/* Forms & Inputs */
+.form-control {
+    border: 1px solid var(--border-color);
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--radius);
+    transition: all 0.15s ease;
+    background-color: var(--accents-1);
+    color: var(--foreground);
+    font-size: 0.9rem;
+}
+
+.form-control:focus {
+    border-color: var(--foreground);
+    box-shadow: none;
+    /* Vercel style focus is often just border color */
+    background-color: var(--background);
+    outline: none;
+}
+
+.form-label {
+    font-weight: 500;
+    color: var(--accents-6);
+    font-size: 0.875rem;
+    margin-bottom: 0.4rem;
+}
+
+.form-check-input:checked {
+    background-color: var(--foreground);
+    border-color: var(--foreground);
+}
+
+/* Buttons */
+.btn {
+    padding: 0.6rem 1.2rem;
+    font-weight: 500;
+    border-radius: var(--radius);
+    transition: all 0.15s ease;
+    letter-spacing: -0.01em;
+    font-size: 0.9rem;
+}
+
+.btn-primary {
+    background-color: var(--foreground);
+    border-color: var(--foreground);
+    color: var(--background);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+    background-color: #333;
+    border-color: #333;
+    transform: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-light {
+    background: var(--background);
+    color: var(--foreground);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-light:hover {
+    background: var(--accents-1);
+    border-color: var(--accents-4);
+    color: var(--foreground);
+}
+
+.btn-outline-primary {
+    color: var(--foreground);
+    border-color: var(--border-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--accents-1);
+    border-color: var(--foreground);
+    color: var(--foreground);
+}
+
+/* Badges & Status */
+.badge {
+    padding: 0.4em 0.8em;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    border-radius: 9999px;
+    /* Pill shape */
+}
+
+.skill-badge {
+    background-color: var(--accents-1);
+    color: var(--accents-6);
+    border: 1px solid var(--border-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    transition: all 0.15s;
+    display: inline-block;
+    margin: 3px;
+    font-weight: 500;
+}
+
+.skill-badge:hover {
+    border-color: var(--foreground);
+    color: var(--foreground);
+}
+
+/* Alerts */
+.alert {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background-color: var(--accents-1);
+    color: var(--foreground);
+    font-size: 0.9rem;
+}
+
+.alert-info {
+    border-left: 3px solid var(--success);
+}
+
+.alert-success {
+    border-left: 3px solid #10b981;
+}
+
+.alert-warning {
+    border-left: 3px solid var(--warning);
+}
+
+.alert-danger {
+    border-left: 3px solid var(--error);
+}
+
+/* Footer */
+.footer {
+    background-color: var(--accents-1);
+    color: var(--accents-5);
+    padding: 60px 0 30px;
+    margin-top: 100px;
+    border-top: 1px solid var(--border-color);
+}
+
+.footer h5 {
+    color: var(--foreground);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+/* Utilities override */
+.bg-primary {
+    background-color: var(--foreground) !important;
+    /* Force black header backgrounds */
+    color: var(--background) !important;
+}
+
+.text-gradient {
+    background: linear-gradient(180deg, #000 0%, #666 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.bg-light-subtle {
+    background-color: var(--accents-1) !important;
+}
+
+/* Animations - Subtle & Fast */
+.animate-fade-up {
+    animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    /* Vercel ease */
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+@keyframes fadeUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.delay-100 {
+    animation-delay: 0.05s;
+}
+
+.delay-200 {
+    animation-delay: 0.1s;
+}
+
+.delay-300 {
+    animation-delay: 0.15s;
+}

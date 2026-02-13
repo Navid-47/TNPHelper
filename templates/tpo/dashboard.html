@@ -6,26 +6,29 @@
 {% block content %}
 <div class="container-fluid py-4">
     <!-- Header -->
-    <div class="row mb-4">
+    <div class="row mb-4 animate-fade-up">
         <div class="col-12">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
+            <div class="card bg-primary text-white border-0 shadow-lg"
+                style="background: var(--gradient-hero) !important;">
+                <div class="card-body p-4">
                     <div class="row align-items-center">
                         <div class="col-md-8">
-                            <h2 class="mb-2">
+                            <h2 class="mb-2 fw-bold">
                                 <i class="fas fa-chart-line me-2"></i>
                                 TPO Dashboard
                             </h2>
-                            <p class="mb-0">Manage student profiles, view resumes, and track placement data.</p>
+                            <p class="mb-0 opacity-75">Manage student profiles, view resumes, and track placement data.
+                            </p>
                         </div>
-                        <div class="col-md-4 text-md-end">
+                        <div class="col-md-4 text-md-end mt-3 mt-md-0">
                             <div class="d-flex gap-2 justify-content-md-end">
-                                <a href="{% url 'tpo:analytics' %}" class="btn btn-light btn-sm">
-                                    <i class="fas fa-chart-pie me-2"></i>
+                                <a href="{% url 'tpo:analytics' %}" class="btn btn-light btn-sm shadow-sm">
+                                    <i class="fas fa-chart-pie me-2 text-primary"></i>
                                     Analytics
                                 </a>
-                                <a href="{% url 'tpo:export_csv' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="btn btn-light btn-sm">
-                                    <i class="fas fa-download me-2"></i>
+                                <a href="{% url 'tpo:export_csv' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+                                    class="btn btn-light btn-sm shadow-sm">
+                                    <i class="fas fa-download me-2 text-primary"></i>
                                     Export CSV
                                 </a>
                             </div>
@@ -35,18 +38,18 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Filters -->
-    <div class="row mb-4">
+    <div class="row mb-4 animate-fade-up delay-100">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-filter me-2"></i>
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <h5 class="mb-0 fw-bold text-gradient">
+                        <i class="fas fa-filter me-2 text-primary"></i>
                         Filters & Search
                     </h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <form method="get" class="row g-3">
                         <div class="col-md-3">
                             {{ form.search|as_crispy_field }}
@@ -70,16 +73,17 @@
                             {{ form.sort_by|as_crispy_field }}
                         </div>
                         <div class="col-md-12">
-                            <div class="d-flex gap-2">
+                            <div class="d-flex gap-2 pt-2">
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-search me-2"></i>
                                     Apply Filters
                                 </button>
-                                <a href="{% url 'tpo:dashboard' %}" class="btn btn-outline-secondary">
+                                <a href="{% url 'tpo:dashboard' %}" class="btn btn-light">
                                     <i class="fas fa-times me-2"></i>
                                     Clear
                                 </a>
-                                <a href="{% url 'tpo:bulk_download_resumes' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}" class="btn btn-success">
+                                <a href="{% url 'tpo:bulk_download_resumes' %}{% if request.GET %}?{{ request.GET.urlencode }}{% endif %}"
+                                    class="btn btn-success text-white">
                                     <i class="fas fa-download me-2"></i>
                                     Download All Resumes
                                 </a>
@@ -90,110 +94,116 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Results Summary -->
-    <div class="row mb-4">
+    <div class="row mb-4 animate-fade-up delay-100">
         <div class="col-12">
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle me-2"></i>
-                Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ total_students }} students
-                {% if request.GET %}
-                    (filtered results)
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    
-    <!-- Student List -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-users me-2"></i>
-                        Student List
-                    </h5>
-                </div>
-                <div class="card-body p-0">
-                    {% if page_obj %}
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Roll No</th>
-                                        <th>Branch</th>
-                                        <th>CGPA</th>
-                                        <th>Skills</th>
-                                        <th>Status</th>
-                                        <th>Resume</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for student in page_obj %}
-                                    <tr>
-                                        <td>
-                                            <strong>{{ student.name }}</strong>
-                                            <br>
-                                            <small class="text-muted">{{ student.email }}</small>
-                                        </td>
-                                        <td>{{ student.roll_no }}</td>
-                                        <td>{{ student.get_branch_display_name }}</td>
-                                        <td>
-                                            <span class="badge bg-primary">{{ student.cgpa }}</span>
-                                        </td>
-                                        <td>
-                                            {% for skill in student.get_skills_list|slice:":3" %}
-                                                <span class="skill-badge">{{ skill }}</span>
-                                            {% endfor %}
-                                            {% if student.get_skills_list|length > 3 %}
-                                                <span class="text-muted">+{{ student.get_skills_list|length|add:"-3" }} more</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <span class="status-badge status-{{ student.placement_status }}">
-                                                {{ student.get_placement_status_display }}
-                                            </span>
-                                            {% if student.is_placed %}
-                                                <br>
-                                                <small class="text-muted">{{ student.company_name }}</small>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if student.resume %}
-                                                <a href="{% url 'tpo:download_resume' student.id %}" class="btn btn-sm btn-outline-primary">
-                                                    <i class="fas fa-download me-1"></i>
-                                                    Download
-                                                </a>
-                                            {% else %}
-                                                <span class="text-muted">No resume</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <div class="btn-group" role="group">
-                                                <a href="{% url 'tpo:student_detail' student.id %}" class="btn btn-sm btn-outline-info">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-users text-muted" style="font-size: 3rem;"></i>
-                            <h5 class="mt-3">No students found</h5>
-                            <p class="text-muted">Try adjusting your filters or add some students to the system.</p>
-                        </div>
+            <div class="alert alert-info border-0 shadow-sm d-flex align-items-center">
+                <i class="fas fa-info-circle me-3 fs-4"></i>
+                <div>
+                    Showing <strong>{{ page_obj.start_index }}</strong> to <strong>{{ page_obj.end_index }}</strong> of
+                    <strong>{{ total_students }}</strong> students
+                    {% if request.GET %}
+                    <span class="badge bg-info text-white ms-2">Filtered Results</span>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
-    
+
+    <!-- Student List -->
+    <div class="row animate-fade-up delay-200">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                    <h5 class="mb-0 fw-bold text-gradient">
+                        <i class="fas fa-users me-2 text-primary"></i>
+                        Student List
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Roll No</th>
+                                    <th>Branch</th>
+                                    <th>CGPA</th>
+                                    <th>Skills</th>
+                                    <th>Status</th>
+                                    <th>Resume</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in page_obj %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ student.name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ student.email }}</small>
+                                    </td>
+                                    <td>{{ student.roll_no }}</td>
+                                    <td>{{ student.get_branch_display_name }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ student.cgpa }}</span>
+                                    </td>
+                                    <td>
+                                        {% for skill in student.get_skills_list|slice:":3" %}
+                                        <span class="skill-badge">{{ skill }}</span>
+                                        {% endfor %}
+                                        {% if student.get_skills_list|length > 3 %}
+                                        <span class="text-muted">+{{ student.get_skills_list|length|add:"-3" }}
+                                            more</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="status-badge status-{{ student.placement_status }}">
+                                            {{ student.get_placement_status_display }}
+                                        </span>
+                                        {% if student.is_placed %}
+                                        <br>
+                                        <small class="text-muted">{{ student.company_name }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if student.resume %}
+                                        <a href="{% url 'tpo:download_resume' student.id %}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download me-1"></i>
+                                            Download
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">No resume</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'tpo:student_detail' student.id %}"
+                                                class="btn btn-sm btn-outline-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-users text-muted" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3">No students found</h5>
+                        <p class="text-muted">Try adjusting your filters or add some students to the system.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Pagination -->
     {% if page_obj.has_other_pages %}
     <div class="row mt-4">
@@ -201,46 +211,51 @@
             <nav aria-label="Student pagination">
                 <ul class="pagination justify-content-center">
                     {% if page_obj.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page=1{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">
-                                <i class="fas fa-angle-double-left"></i>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">
-                                <i class="fas fa-angle-left"></i>
-                            </a>
-                        </li>
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="?page=1{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="?page={{ page_obj.previous_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
                     {% endif %}
-                    
+
                     {% for num in page_obj.paginator.page_range %}
-                        {% if page_obj.number == num %}
-                            <li class="page-item active">
-                                <span class="page-link">{{ num }}</span>
-                            </li>
-                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ num }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">{{ num }}</a>
-                            </li>
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <li class="page-item">
+                        <a class="page-link"
+                            href="?page={{ num }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">{{
+                            num }}</a>
+                        </li>
                         {% endif %}
-                    {% endfor %}
-                    
-                    {% if page_obj.has_next %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">
+                            <a class="page-link"
+                                href="?page={{ page_obj.next_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">
                                 <i class="fas fa-angle-right"></i>
                             </a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">
+                            <a class="page-link"
+                                href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">
                                 <i class="fas fa-angle-double-right"></i>
                             </a>
                         </li>
-                    {% endif %}
+                        {% endif %}
                 </ul>
             </nav>
         </div>
     </div>
     {% endif %}
 </div>
-{% endblock %} 
+{% endblock %}
