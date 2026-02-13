@@ -1,309 +1,280 @@
-{% extends 'base.html' %}
+{% extends 'dashboard_base.html' %}
 
-{% block title %}Analytics - Resume Bank{% endblock %}
+{% block title %}Analytics — TNP Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chart-card canvas {
+        max-height: 280px;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-2">
-                                <i class="fas fa-chart-pie me-2"></i>
-                                Analytics Dashboard
-                            </h2>
-                            <p class="mb-0">Comprehensive insights into student data and placement statistics.</p>
-                        </div>
-                        <div class="col-md-4 text-md-end">
-                            <a href="{% url 'tpo:dashboard' %}" class="btn btn-light btn-sm">
-                                <i class="fas fa-arrow-left me-2"></i>
-                                Back to Dashboard
-                            </a>
-                        </div>
-                    </div>
+<div class="d-flex justify-content-between align-items-center mb-4 animate-fade-up">
+    <h4 class="fw-bold mb-0">
+        <i class="bi bi-graph-up me-2 text-primary"></i>
+        Analytics Dashboard
+    </h4>
+</div>
+
+{% if no_data %}
+<div class="card border-0 animate-fade-up">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-bar-chart-line" style="font-size: 3.5rem; color: var(--slate-300);"></i>
+        <h4 class="mt-3 fw-bold" style="color: var(--slate-600);">No Data Available</h4>
+        <p class="text-muted">Start by adding students to see analytics.</p>
+        <a href="{% url 'tpo:dashboard' %}" class="btn btn-primary">
+            <i class="bi bi-people me-1"></i> View Students
+        </a>
+    </div>
+</div>
+{% else %}
+<!-- Stat Cards -->
+<div class="row g-3 mb-4 animate-fade-up delay-100">
+    <div class="col-6 col-md-3">
+        <div class="card border-0">
+            <div class="card-body stat-card">
+                <div class="stat-icon mx-auto" style="background: var(--primary-50); color: var(--primary-600);">
+                    <i class="bi bi-people"></i>
                 </div>
+                <div class="stat-value">{{ total_students }}</div>
+                <div class="stat-label">Total Students</div>
             </div>
         </div>
     </div>
-    
-    {% if no_data %}
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body text-center py-5">
-                        <i class="fas fa-chart-line text-muted" style="font-size: 4rem;"></i>
-                        <h4 class="mt-3">No Data Available</h4>
-                        <p class="text-muted">Start by adding some students to see analytics.</p>
-                        <a href="{% url 'tpo:dashboard' %}" class="btn btn-primary">
-                            <i class="fas fa-users me-2"></i>
-                            View Students
-                        </a>
-                    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0">
+            <div class="card-body stat-card">
+                <div class="stat-icon mx-auto" style="background: var(--success-surface); color: var(--success-text);">
+                    <i class="bi bi-check-circle"></i>
                 </div>
+                <div class="stat-value">{{ placed_count }}</div>
+                <div class="stat-label">Placed</div>
             </div>
         </div>
-    {% else %}
-        <!-- Summary Cards -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <i class="fas fa-users text-primary" style="font-size: 2rem;"></i>
-                        <h3 class="mt-2">{{ total_students }}</h3>
-                        <p class="text-muted mb-0">Total Students</p>
-                    </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0">
+            <div class="card-body stat-card">
+                <div class="stat-icon mx-auto" style="background: var(--warning-surface); color: var(--warning-text);">
+                    <i class="bi bi-hourglass-split"></i>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <i class="fas fa-check-circle text-success" style="font-size: 2rem;"></i>
-                        <h3 class="mt-2">{{ placed_count }}</h3>
-                        <p class="text-muted mb-0">Placed Students</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <i class="fas fa-percentage text-info" style="font-size: 2rem;"></i>
-                        <h3 class="mt-2">{{ placement_rate }}%</h3>
-                        <p class="text-muted mb-0">Placement Rate</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <i class="fas fa-graduation-cap text-warning" style="font-size: 2rem;"></i>
-                        <h3 class="mt-2">{{ branch_stats|length }}</h3>
-                        <p class="text-muted mb-0">Branches</p>
-                    </div>
-                </div>
+                <div class="stat-value">{{ in_process_count|default:"—" }}</div>
+                <div class="stat-label">In Process</div>
             </div>
         </div>
-        
-        <!-- Charts Row 1 -->
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-chart-pie me-2"></i>
-                            CGPA Distribution
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="cgpaChart" width="400" height="200"></canvas>
-                    </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-0">
+            <div class="card-body stat-card">
+                <div class="stat-icon mx-auto" style="background: #f0f9ff; color: #0369a1;">
+                    <i class="bi bi-percent"></i>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-chart-bar me-2"></i>
-                            Placement Status
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="placementChart" width="400" height="200"></canvas>
-                    </div>
-                </div>
+                <div class="stat-value">{{ placement_rate }}%</div>
+                <div class="stat-label">Placement Rate</div>
             </div>
         </div>
-        
-        <!-- Charts Row 2 -->
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-chart-bar me-2"></i>
-                            Branch Distribution
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="branchChart" width="400" height="200"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-chart-bar me-2"></i>
-                            Top Skills
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="skillsChart" width="400" height="200"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Branch Performance -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-table me-2"></i>
-                            Branch-wise Performance
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Branch</th>
-                                        <th>Students</th>
-                                        <th>Average CGPA</th>
-                                        <th>Placed</th>
-                                        <th>Placement Rate</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for branch in avg_cgpa_by_branch %}
-                                    <tr>
-                                        <td>
-                                            {% for choice in branch_stats %}
-                                                {% if choice.branch == branch.branch %}
-                                                    {{ choice.get_branch_display_name }}
-                                                {% endif %}
-                                            {% endfor %}
-                                        </td>
-                                        <td>
-                                            {% for choice in branch_stats %}
-                                                {% if choice.branch == branch.branch %}
-                                                    {{ choice.count }}
-                                                {% endif %}
-                                            {% endfor %}
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-primary">{{ branch.avg_cgpa|floatformat:2 }}</span>
-                                        </td>
-                                        <td>
-                                            <!-- This would need additional logic in the view -->
-                                            <span class="text-muted">-</span>
-                                        </td>
-                                        <td>
-                                            <span class="text-muted">-</span>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    {% endif %}
+    </div>
 </div>
 
+<!-- Charts Row 1 -->
+<div class="row g-4 mb-4 animate-fade-up delay-200">
+    <div class="col-md-6">
+        <div class="card border-0 chart-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-bar-chart me-2 text-primary"></i> CGPA Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="cgpaChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 chart-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-pie-chart me-2 text-primary"></i> Placement Status</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="placementChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="row g-4 mb-4 animate-fade-up delay-300">
+    <div class="col-md-6">
+        <div class="card border-0 chart-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-diagram-3 me-2 text-primary"></i> Branch Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="branchChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 chart-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-stars me-2 text-primary"></i> Top Skills</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="skillsChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Branch Performance Table -->
+<div class="card border-0 animate-fade-up delay-400">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-table me-2 text-primary"></i> Branch-wise Performance</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Branch</th>
+                        <th>Students</th>
+                        <th>Avg CGPA</th>
+                        <th>Placed</th>
+                        <th>Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for branch in avg_cgpa_by_branch %}
+                    <tr>
+                        <td>
+                            {% for choice in branch_stats %}
+                            {% if choice.branch == branch.branch %}
+                            {{ choice.get_branch_display_name }}
+                            {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% for choice in branch_stats %}
+                            {% if choice.branch == branch.branch %}
+                            {{ choice.count }}
+                            {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill"
+                                style="background: var(--primary-50); color: var(--primary-700);">
+                                {{ branch.avg_cgpa|floatformat:2 }}
+                            </span>
+                        </td>
+                        <td style="color: var(--slate-400);">—</td>
+                        <td style="color: var(--slate-400);">—</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
 {% if not no_data %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
-// CGPA Distribution Chart
-const cgpaCtx = document.getElementById('cgpaChart').getContext('2d');
-const cgpaChart = new Chart(cgpaCtx, {
-    type: 'pie',
-    data: {
-        labels: ['9.0-10.0', '8.0-8.99', '7.0-7.99', '6.0-6.99', 'Below 6.0'],
-        datasets: [{
-            data: [1, 2, 1, 0, 0],
-            backgroundColor: [
-                '#FF6384',
-                '#36A2EB',
-                '#FFCE56',
-                '#4BC0C0',
-                '#9966FF'
-            ]
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            }
-        }
-    }
-});
+    // Teal palette for charts
+    const ChartPalette = {
+        teal: 'rgba(13,148,136,0.8)',
+        teal2: 'rgba(45,212,191,0.8)',
+        green: 'rgba(22,101,52,0.8)',
+        amber: 'rgba(180,83,9,0.8)',
+        sky: 'rgba(3,105,161,0.7)',
+        purple: 'rgba(126,34,206,0.7)',
+        rose: 'rgba(190,18,60,0.7)',
+        slate: 'rgba(100,116,139,0.6)',
+        multi: [
+            'rgba(13,148,136,0.75)',
+            'rgba(45,212,191,0.75)',
+            'rgba(153,246,228,0.75)',
+            'rgba(15,118,110,0.75)',
+            'rgba(17,94,89,0.75)'
+        ]
+    };
 
-// Placement Status Chart
-const placementCtx = document.getElementById('placementChart').getContext('2d');
-const placementChart = new Chart(placementCtx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Placed', 'Not Placed', 'In Process'],
-        datasets: [{
-            data: [3, 1, 1],
-            backgroundColor: [
-                '#28a745',
-                '#dc3545',
-                '#ffc107'
-            ]
-        }]
-    },
-    options: {
+    const commonOpts = {
         responsive: true,
-        plugins: {
-            legend: {
-                position: 'bottom'
-            }
-        }
-    }
-});
+        plugins: { legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true } } }
+    };
 
-// Branch Distribution Chart
-const branchCtx = document.getElementById('branchChart').getContext('2d');
-const branchChart = new Chart(branchCtx, {
-    type: 'bar',
-    data: {
-        labels: ['CSE', 'ECE', 'ME', 'IT', 'CE', 'EEE', 'AI', 'DS'],
-        datasets: [{
-            label: 'Number of Students',
-            data: [2, 1, 1, 1, 0, 0, 0, 0],
-            backgroundColor: '#36A2EB'
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
-});
+    // CGPA
+    new Chart(document.getElementById('cgpaChart'), {
+        type: 'bar',
+        data: {
+            labels: ['9.0-10', '8.0-8.9', '7.0-7.9', '6.0-6.9', '<6.0'],
+            datasets: [{
+                label: 'Students',
+                data: [1, 2, 1, 0, 0],
+                backgroundColor: ChartPalette.multi,
+                borderRadius: 6,
+                barPercentage: 0.65
+            }]
+        },
+        options: { ...commonOpts, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.04)' } } } }
+    });
 
-// Skills Chart
-const skillsCtx = document.getElementById('skillsChart').getContext('2d');
-const skillsChart = new Chart(skillsCtx, {
-    type: 'bar',
-    data: {
-        labels: ['Python', 'Java', 'JavaScript', 'C++', 'SQL'],
-        datasets: [{
-            label: 'Number of Students',
-            data: [3, 2, 1, 1, 1],
-            backgroundColor: '#4BC0C0'
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: {
-                beginAtZero: true
-            }
+    // Placement
+    new Chart(document.getElementById('placementChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Placed', 'Not Placed', 'In Process'],
+            datasets: [{
+                data: [3, 1, 1],
+                backgroundColor: [ChartPalette.teal, ChartPalette.slate, ChartPalette.amber],
+                borderWidth: 0,
+                hoverOffset: 6
+            }]
+        },
+        options: { ...commonOpts, cutout: '60%' }
+    });
+
+    // Branch
+    new Chart(document.getElementById('branchChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['CSE', 'ECE', 'ME', 'IT', 'CE', 'EEE', 'AI', 'DS'],
+            datasets: [{
+                data: [2, 1, 1, 1, 0, 0, 0, 0],
+                backgroundColor: [
+                    ChartPalette.teal, ChartPalette.teal2, ChartPalette.green,
+                    ChartPalette.amber, ChartPalette.sky, ChartPalette.purple,
+                    ChartPalette.rose, ChartPalette.slate
+                ],
+                borderWidth: 0,
+                hoverOffset: 6
+            }]
+        },
+        options: { ...commonOpts, cutout: '55%' }
+    });
+
+    // Skills
+    new Chart(document.getElementById('skillsChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Python', 'Java', 'JavaScript', 'C++', 'SQL'],
+            datasets: [{
+                label: 'Students',
+                data: [3, 2, 1, 1, 1],
+                backgroundColor: ChartPalette.teal,
+                borderRadius: 6,
+                barPercentage: 0.65
+            }]
+        },
+        options: {
+            ...commonOpts,
+            indexAxis: 'y',
+            scales: { x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.04)' } } }
         }
-    }
-});
+    });
 </script>
 {% endif %}
-{% endblock %} 
+{% endblock %}

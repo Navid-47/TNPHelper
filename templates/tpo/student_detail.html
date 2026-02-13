@@ -1,172 +1,166 @@
-{% extends 'base.html' %}
+{% extends 'dashboard_base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Student Detail - Resume Bank{% endblock %}
+{% block title %}{{ student.name }} — TNP Portal{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-2">
-                                <i class="fas fa-user me-2"></i>
-                                {{ student.name }}
-                            </h2>
-                            <p class="mb-0">{{ student.roll_no }} • {{ student.get_branch_display_name }}</p>
-                        </div>
-                        <div class="col-md-4 text-md-end">
-                            <div class="d-flex gap-2 justify-content-md-end">
-                                <a href="{% url 'tpo:dashboard' %}" class="btn btn-light btn-sm">
-                                    <i class="fas fa-arrow-left me-2"></i>
-                                    Back to Dashboard
-                                </a>
-                                {% if student.resume %}
-                                <a href="{% url 'tpo:download_resume' student.id %}" class="btn btn-light btn-sm">
-                                    <i class="fas fa-download me-2"></i>
-                                    Download Resume
-                                </a>
-                                {% endif %}
-                            </div>
-                        </div>
+<!-- Profile Header -->
+<div class="card border-0 mb-4 animate-fade-up" style="background: var(--gradient-hero); color: #fff;">
+    <div class="card-body p-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="avatar-lg" style="background: rgba(255,255,255,0.2); color: #fff; font-size: 1.5rem;">
+                        {{ student.name|make_list|first|upper }}
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-1" style="color: #fff;">{{ student.name }}</h3>
+                        <p class="mb-0" style="opacity: 0.75;">{{ student.roll_no }} • {{
+                            student.get_branch_display_name }}</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <div class="row">
-        <!-- Student Information -->
-        <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-user me-2"></i>
-                        Student Information
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <strong>Name:</strong>
-                            <p class="text-muted">{{ student.name }}</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <strong>Roll Number:</strong>
-                            <p class="text-muted">{{ student.roll_no }}</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <strong>Email:</strong>
-                            <p class="text-muted">{{ student.email }}</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <strong>Branch:</strong>
-                            <p class="text-muted">{{ student.get_branch_display_name }}</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <strong>CGPA:</strong>
-                            <p class="text-muted">{{ student.cgpa }}</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <strong>Registration Date:</strong>
-                            <p class="text-muted">{{ student.created_at|date:"F j, Y" }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <strong>Skills:</strong>
-                        <div class="mt-2">
-                            {% if skills_list %}
-                                {% for skill in skills_list %}
-                                    <span class="skill-badge">{{ skill }}</span>
-                                {% endfor %}
-                            {% else %}
-                                <p class="text-muted">No skills listed</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Resume Information -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-file-pdf me-2"></i>
-                        Resume Information
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if student.resume %}
-                        <div class="row align-items-center">
-                            <div class="col-md-8">
-                                <h6 class="mb-1">Resume File</h6>
-                                <p class="text-muted mb-2">{{ student.get_resume_filename }}</p>
-                                <small class="text-muted">Last updated: {{ student.updated_at|date:"F j, Y g:i A" }}</small>
-                            </div>
-                            <div class="col-md-4 text-md-end">
-                                <a href="{% url 'tpo:download_resume' student.id %}" class="btn btn-primary">
-                                    <i class="fas fa-download me-2"></i>
-                                    Download Resume
-                                </a>
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
-                            <h6 class="mt-3 text-warning">No Resume Uploaded</h6>
-                            <p class="text-muted">This student hasn't uploaded a resume yet.</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        
-        <!-- Placement Status Update -->
-        <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-briefcase me-2"></i>
-                        Placement Status
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <!-- Current Status -->
-                    <div class="mb-4">
-                        <h6>Current Status:</h6>
-                        <span class="status-badge status-{{ student.placement_status }}">
-                            {{ student.get_placement_status_display }}
-                        </span>
-                        
-                        {% if student.is_placed %}
-                            <div class="mt-2">
-                                <small class="text-muted">
-                                    <strong>Company:</strong> {{ student.company_name }}<br>
-                                    <strong>Package:</strong> {{ student.package }} LPA
-                                </small>
-                            </div>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Update Form -->
-                    <form method="post">
-                        {% csrf_token %}
-                        {{ form|crispy }}
-                        
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i>
-                                Update Status
-                            </button>
-                        </div>
-                    </form>
-                </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <span class="status-badge status-{{ student.placement_status }}" style="font-size: 0.85rem;">
+                    {{ student.get_placement_status_display }}
+                </span>
             </div>
         </div>
     </div>
 </div>
-{% endblock %} 
+
+<div class="row">
+    <!-- Info Grid -->
+    <div class="col-lg-8">
+        <div class="card border-0 mb-4 animate-fade-up delay-100">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-person me-2 text-primary"></i> Student Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="small text-uppercase fw-bold"
+                            style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Email</label>
+                        <p class="mb-0">{{ student.email }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-uppercase fw-bold"
+                            style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Roll
+                            Number</label>
+                        <p class="mb-0">{{ student.roll_no }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-uppercase fw-bold"
+                            style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Branch</label>
+                        <p class="mb-0">{{ student.get_branch_display_name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-uppercase fw-bold"
+                            style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">CGPA</label>
+                        <p class="mb-0"><span class="badge rounded-pill"
+                                style="background: var(--primary-50); color: var(--primary-700);">{{ student.cgpa
+                                }}</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-uppercase fw-bold"
+                            style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Registration
+                            Date</label>
+                        <p class="mb-0">{{ student.created_at|date:"F j, Y" }}</p>
+                    </div>
+                </div>
+
+                <!-- Skills -->
+                <div class="mt-4">
+                    <label class="small text-uppercase fw-bold mb-2 d-block"
+                        style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Skills</label>
+                    {% if skills_list %}
+                    {% for skill in skills_list %}
+                    <span class="skill-badge">{{ skill }}</span>
+                    {% endfor %}
+                    {% else %}
+                    <p class="text-muted small mb-0">No skills listed</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Resume -->
+        <div class="card border-0 mb-4 animate-fade-up delay-200">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-file-earmark-pdf me-2 text-primary"></i> Resume
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if student.resume %}
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="mb-1 fw-500">{{ student.get_resume_filename }}</p>
+                        <small style="color: var(--slate-400);">Last updated: {{ student.updated_at|date:"F j, Y g:i A"
+                            }}</small>
+                    </div>
+                    <a href="{% url 'tpo:download_resume' student.id %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-download me-1"></i> Download
+                    </a>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 2.5rem; color: var(--warning-text);"></i>
+                    <h6 class="mt-2" style="color: var(--warning-text);">No Resume Uploaded</h6>
+                    <p class="text-muted small">This student hasn't uploaded a resume yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Placement Update -->
+    <div class="col-lg-4">
+        <div class="card border-0 animate-fade-up delay-200">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-briefcase me-2 text-primary"></i> Placement Status
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <label class="small text-uppercase fw-bold"
+                        style="color: var(--slate-400); font-size: 0.7rem;">Current Status</label>
+                    <div class="mt-1">
+                        <span class="status-badge status-{{ student.placement_status }}">
+                            {{ student.get_placement_status_display }}
+                        </span>
+                    </div>
+
+                    {% if student.is_placed %}
+                    <div class="mt-2 p-2 rounded" style="background: var(--success-surface);">
+                        <small>
+                            <strong>Company:</strong> {{ student.company_name }}<br>
+                            <strong>Package:</strong> {{ student.package }} LPA
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary hover-lift">
+                            <i class="bi bi-check-lg me-1"></i> Update Status
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <a href="{% url 'tpo:dashboard' %}" class="btn btn-light btn-sm w-100">
+                <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
