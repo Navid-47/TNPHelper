@@ -11,6 +11,13 @@
 {% endblock %}
 
 {% block content %}
+<nav class="breadcrumb-nav animate-fade-up">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'tpo:dashboard' %}"><i
+                    class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
+        <li class="breadcrumb-item active">Analytics</li>
+    </ol>
+</nav>
 <div class="d-flex justify-content-between align-items-center mb-4 animate-fade-up">
     <h4 class="fw-bold mb-0">
         <i class="bi bi-graph-up me-2 text-primary"></i>
@@ -60,7 +67,7 @@
                 <div class="stat-icon mx-auto" style="background: var(--warning-surface); color: var(--warning-text);">
                     <i class="bi bi-hourglass-split"></i>
                 </div>
-                <div class="stat-value">{{ in_process_count|default:"—" }}</div>
+                <div class="stat-value">{{ in_process_count|default:"0" }}</div>
                 <div class="stat-label">In Process</div>
             </div>
         </div>
@@ -149,7 +156,7 @@
                         <td>
                             {% for choice in branch_stats %}
                             {% if choice.branch == branch.branch %}
-                            {{ choice.get_branch_display_name }}
+                            {{ choice.branch_name }}
                             {% endif %}
                             {% endfor %}
                         </td>
@@ -166,8 +173,23 @@
                                 {{ branch.avg_cgpa|floatformat:2 }}
                             </span>
                         </td>
-                        <td style="color: var(--slate-400);">—</td>
-                        <td style="color: var(--slate-400);">—</td>
+                        <td>
+                            {% for item in branch_placement %}
+                            {% if item.branch == branch.branch %}
+                            <span class="fw-500">{{ item.placed }}</span>
+                            {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% for item in branch_placement %}
+                            {% if item.branch == branch.branch %}
+                            <span class="badge rounded-pill"
+                                style="background: var(--success-surface); color: var(--success-text);">
+                                {{ item.rate }}%
+                            </span>
+                            {% endif %}
+                            {% endfor %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -206,29 +228,40 @@
         plugins: { legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true } } }
     };
 
-    // CGPA
+    // CGPA Distribution — dynamic from Django context
+    const cgpaData = {
+        {% for label, count in cgpa_distribution.items %}
+        "{{ label }}": {{ count }},
+        {% endfor %}
+    };
     new Chart(document.getElementById('cgpaChart'), {
         type: 'bar',
         data: {
-            labels: ['9.0-10', '8.0-8.9', '7.0-7.9', '6.0-6.9', '<6.0'],
+            labels: Object.keys(cgpaData),
             datasets: [{
                 label: 'Students',
-                data: [1, 2, 1, 0, 0],
+                data: Object.values(cgpaData),
                 backgroundColor: ChartPalette.multi,
                 borderRadius: 6,
                 barPercentage: 0.65
             }]
         },
-        options: { ...commonOpts, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.04)' } } } }
+        options: { ...commonOpts, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,.04)' } } } }
     });
 
-    // Placement
+    // Placement Status — from aggregate counts
+    const placementData = {
+        placed: {{ placed_count }},
+        not_placed: {{ not_placed_count }},
+        in_process: {{ in_process_count }},
+    };
+    const placementLabels = { placed: 'Placed', not_placed: 'Not Placed', in_process: 'In Process' };
     new Chart(document.getElementById('placementChart'), {
         type: 'doughnut',
         data: {
-            labels: ['Placed', 'Not Placed', 'In Process'],
+            labels: Object.keys(placementData).map(k => placementLabels[k] || k),
             datasets: [{
-                data: [3, 1, 1],
+                data: Object.values(placementData),
                 backgroundColor: [ChartPalette.teal, ChartPalette.slate, ChartPalette.amber],
                 borderWidth: 0,
                 hoverOffset: 6
@@ -237,18 +270,21 @@
         options: { ...commonOpts, cutout: '60%' }
     });
 
-    // Branch
+    // Branch Distribution — dynamic from Django context
+    const branchColors = [ChartPalette.teal, ChartPalette.teal2, ChartPalette.green,
+        ChartPalette.amber, ChartPalette.sky, ChartPalette.purple, ChartPalette.rose, ChartPalette.slate];
+    const branchData = {
+        {% for item in branch_stats %}
+        "{{ item.branch }}": {{ item.count }},
+        {% endfor %}
+    };
     new Chart(document.getElementById('branchChart'), {
         type: 'doughnut',
         data: {
-            labels: ['CSE', 'ECE', 'ME', 'IT', 'CE', 'EEE', 'AI', 'DS'],
+            labels: Object.keys(branchData),
             datasets: [{
-                data: [2, 1, 1, 1, 0, 0, 0, 0],
-                backgroundColor: [
-                    ChartPalette.teal, ChartPalette.teal2, ChartPalette.green,
-                    ChartPalette.amber, ChartPalette.sky, ChartPalette.purple,
-                    ChartPalette.rose, ChartPalette.slate
-                ],
+                data: Object.values(branchData),
+                backgroundColor: branchColors.slice(0, Object.keys(branchData).length),
                 borderWidth: 0,
                 hoverOffset: 6
             }]
@@ -256,14 +292,19 @@
         options: { ...commonOpts, cutout: '55%' }
     });
 
-    // Skills
+    // Top Skills — dynamic from Django context
+    const skillsData = {
+        {% for skill, count in top_skills.items %}
+        "{{ skill }}": {{ count }},
+        {% endfor %}
+    };
     new Chart(document.getElementById('skillsChart'), {
         type: 'bar',
         data: {
-            labels: ['Python', 'Java', 'JavaScript', 'C++', 'SQL'],
+            labels: Object.keys(skillsData),
             datasets: [{
                 label: 'Students',
-                data: [3, 2, 1, 1, 1],
+                data: Object.values(skillsData),
                 backgroundColor: ChartPalette.teal,
                 borderRadius: 6,
                 barPercentage: 0.65
@@ -272,7 +313,7 @@
         options: {
             ...commonOpts,
             indexAxis: 'y',
-            scales: { x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.04)' } } }
+            scales: { x: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,.04)' } } }
         }
     });
 </script>

@@ -12,8 +12,7 @@
                     <i class="bi bi-mortarboard me-2"></i>
                     Welcome, {{ student.name }}!
                 </h3>
-                <p class="mb-0" style="opacity: 0.75;">Manage your profile, upload resume, and track your placement
-                    status.</p>
+                <p class="mb-0" style="opacity: 0.75; color: black;">Manage your profile, upload resume, and track your placement status.</p>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
                 <span class="badge bg-white px-3 py-2 rounded-pill shadow-sm" style="color: var(--primary-700);">
@@ -24,189 +23,215 @@
     </div>
 </div>
 
-<div class="row">
-    <!-- Left Column -->
-    <div class="col-lg-8">
-        <!-- Status Cards Row -->
-        <div class="row g-3 mb-4">
-            <div class="col-6 animate-fade-up delay-100">
-                <div class="card border-0">
-                    <div class="card-body stat-card">
-                        <div class="stat-icon mx-auto"
-                            style="background: var(--primary-50); color: var(--primary-600);">
-                            <i class="bi bi-mortarboard"></i>
+<!-- Profile Completion -->
+{% if profile_completion.percentage < 100 %} <div class="profile-completion mb-4 animate-fade-up delay-100">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+            <h6 class="fw-bold mb-0" style="font-size: 0.9rem;">
+                <i class="bi bi-person-check me-1 text-primary"></i>
+                Profile Completion
+            </h6>
+        </div>
+        <span class="badge rounded-pill" style="background: var(--primary-50); color: var(--primary-700);">
+            {{ profile_completion.percentage }}%
+        </span>
+    </div>
+    <div class="progress mb-2">
+        <div class="progress-bar" role="progressbar" style="width: {{ profile_completion.percentage }}%"
+            aria-valuenow="{{ profile_completion.percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+    {% if profile_completion.missing %}
+    <p class="small mb-0" style="color: var(--slate-500);">
+        <i class="bi bi-info-circle me-1"></i>
+        Missing: {{ profile_completion.missing|join:", " }}
+    </p>
+    {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Status Cards Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 animate-fade-up delay-100">
+                    <div class="card border-0">
+                        <div class="card-body stat-card">
+                            <div class="stat-icon mx-auto"
+                                style="background: var(--primary-50); color: var(--primary-600);">
+                                <i class="bi bi-mortarboard"></i>
+                            </div>
+                            <div class="stat-value">{{ student.cgpa }}</div>
+                            <div class="stat-label">CGPA</div>
                         </div>
-                        <div class="stat-value">{{ student.cgpa }}</div>
-                        <div class="stat-label">CGPA</div>
+                    </div>
+                </div>
+                <div class="col-6 animate-fade-up delay-200">
+                    <div class="card border-0">
+                        <div class="card-body stat-card">
+                            <div class="stat-icon mx-auto"
+                                style="background: {% if student.resume %}var(--success-surface){% else %}var(--warning-surface){% endif %}; color: {% if student.resume %}var(--success-text){% else %}var(--warning-text){% endif %};">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+                            <div class="stat-value" style="font-size: 1.1rem;">{% if student.resume %}Uploaded{% else %}Missing{% endif %}</div>
+                            <div class="stat-label">Resume</div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-6 animate-fade-up delay-200">
-                <div class="card border-0">
-                    <div class="card-body stat-card">
-                        <div class="stat-icon mx-auto"
-                            style="background: {% if student.resume %}var(--success-surface){% else %}var(--warning-surface){% endif %}; color: {% if student.resume %}var(--success-text){% else %}var(--warning-text){% endif %};">
-                            <i class="bi bi-file-earmark-text"></i>
+
+            <!-- Profile Overview -->
+            <div class="card border-0 mb-4 animate-fade-up delay-200">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person me-2 text-primary"></i>
+                        Profile Overview
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="small text-uppercase fw-bold"
+                                style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Name</label>
+                            <p class="mb-0 fw-500">{{ student.name }}</p>
                         </div>
-                        <div class="stat-value" style="font-size: 1.1rem;">{% if student.resume %}Uploaded{% else
-                            %}Missing{% endif %}</div>
-                        <div class="stat-label">Resume</div>
+                        <div class="col-md-6">
+                            <label class="small text-uppercase fw-bold"
+                                style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Roll
+                                Number</label>
+                            <p class="mb-0 fw-500">{{ student.roll_no }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small text-uppercase fw-bold"
+                                style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Email</label>
+                            <p class="mb-0 fw-500">{{ student.email }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small text-uppercase fw-bold"
+                                style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Branch</label>
+                            <p class="mb-0 fw-500">{{ student.get_branch_display_name }}</p>
+                        </div>
+                        {% if student.is_placed %}
+                        <div class="col-md-6">
+                            <label class="small text-uppercase fw-bold"
+                                style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Company</label>
+                            <p class="mb-0 fw-500">{{ student.company_name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="small text-uppercase fw-bold"
+                                style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Package</label>
+                            <p class="mb-0 fw-500">{{ student.package }} LPA</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Skills -->
+                    <div class="mt-4">
+                        <label class="small text-uppercase fw-bold mb-2 d-block"
+                            style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Skills</label>
+                        {% if skills_list %}
+                        {% for skill in skills_list %}
+                        <span class="skill-badge">{{ skill }}</span>
+                        {% endfor %}
+                        {% else %}
+                        <p class="text-muted small mb-0">No skills listed</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{% url 'students:profile' %}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-pencil me-1"></i> Edit Profile
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Profile Overview -->
-        <div class="card border-0 mb-4 animate-fade-up delay-200">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-person me-2 text-primary"></i>
-                    Profile Overview
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="small text-uppercase fw-bold"
-                            style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Name</label>
-                        <p class="mb-0 fw-500">{{ student.name }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="small text-uppercase fw-bold"
-                            style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Roll
-                            Number</label>
-                        <p class="mb-0 fw-500">{{ student.roll_no }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="small text-uppercase fw-bold"
-                            style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Email</label>
-                        <p class="mb-0 fw-500">{{ student.email }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="small text-uppercase fw-bold"
-                            style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Branch</label>
-                        <p class="mb-0 fw-500">{{ student.get_branch_display_name }}</p>
-                    </div>
-                    {% if student.is_placed %}
-                    <div class="col-md-6">
-                        <label class="small text-uppercase fw-bold"
-                            style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Company</label>
-                        <p class="mb-0 fw-500">{{ student.company_name }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="small text-uppercase fw-bold"
-                            style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Package</label>
-                        <p class="mb-0 fw-500">{{ student.package }} LPA</p>
-                    </div>
-                    {% endif %}
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Resume Status -->
+            <div class="card border-0 mb-4 animate-fade-up delay-300">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-earmark-pdf me-2 text-primary"></i>
+                        Resume
+                    </h5>
                 </div>
-
-                <!-- Skills -->
-                <div class="mt-4">
-                    <label class="small text-uppercase fw-bold mb-2 d-block"
-                        style="color: var(--slate-400); letter-spacing: 0.05em; font-size: 0.7rem;">Skills</label>
-                    {% if skills_list %}
-                    {% for skill in skills_list %}
-                    <span class="skill-badge">{{ skill }}</span>
-                    {% endfor %}
+                <div class="card-body text-center py-4">
+                    {% if student.resume %}
+                    <div class="mb-3">
+                        <div class="avatar-lg mx-auto"
+                            style="background: var(--success-surface); color: var(--success-text); font-size: 2rem;">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                    </div>
+                    <h6 class="fw-bold" style="color: var(--success-text);">Resume Uploaded</h6>
+                    <p class="small text-muted mb-3">{{ student.get_resume_filename }}</p>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'students:download_resume' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-download me-1"></i> Download
+                        </a>
+                        <a href="{% url 'students:upload_resume' %}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-repeat me-1"></i> Update
+                        </a>
+                    </div>
                     {% else %}
-                    <p class="text-muted small mb-0">No skills listed</p>
+                    <div class="mb-3">
+                        <div class="avatar-lg mx-auto"
+                            style="background: var(--warning-surface); color: var(--warning-text); font-size: 2rem;">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                    <h6 class="fw-bold" style="color: var(--warning-text);">No Resume</h6>
+                    <p class="small text-muted mb-3">Upload your resume to complete your profile.</p>
+                    <div class="d-grid">
+                        <a href="{% url 'students:upload_resume' %}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-upload me-1"></i> Upload Resume
+                        </a>
+                    </div>
                     {% endif %}
                 </div>
+            </div>
 
-                <div class="mt-4">
-                    <a href="{% url 'students:profile' %}" class="btn btn-primary btn-sm">
-                        <i class="bi bi-pencil me-1"></i> Edit Profile
-                    </a>
+            <!-- Quick Actions -->
+            <div class="card border-0 animate-fade-up delay-400">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning me-2 text-primary"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'students:profile' %}" class="list-group-item list-group-item-action border-0">
+                            <i class="bi bi-pencil-square me-2 text-primary"></i> Update Profile
+                        </a>
+                        <a href="{% url 'students:upload_resume' %}"
+                            class="list-group-item list-group-item-action border-0">
+                            <i class="bi bi-cloud-arrow-up me-2 text-primary"></i> Upload Resume
+                        </a>
+                        <a href="{% url 'students:drives_list' %}"
+                            class="list-group-item list-group-item-action border-0">
+                            <i class="bi bi-briefcase me-2 text-primary"></i> Browse Drives
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="card border-0 mt-4 animate-fade-up delay-400"
+                style="background: var(--primary-50); border: 1px solid var(--primary-100) !important;">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-2" style="color: var(--primary-800);">
+                        <i class="bi bi-lightbulb me-1"></i> Tips
+                    </h6>
+                    <ul class="small mb-0 ps-3" style="color: var(--primary-700);">
+                        <li>Keep your profile updated with latest skills</li>
+                        <li>Upload your resume in PDF format (max 10MB)</li>
+                        <li>Check drives regularly for new opportunities</li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Right Column -->
-    <div class="col-lg-4">
-        <!-- Resume Status -->
-        <div class="card border-0 mb-4 animate-fade-up delay-300">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-file-earmark-pdf me-2 text-primary"></i>
-                    Resume
-                </h5>
-            </div>
-            <div class="card-body text-center py-4">
-                {% if student.resume %}
-                <div class="mb-3">
-                    <div class="avatar-lg mx-auto"
-                        style="background: var(--success-surface); color: var(--success-text); font-size: 2rem;">
-                        <i class="bi bi-check-circle"></i>
-                    </div>
-                </div>
-                <h6 class="fw-bold" style="color: var(--success-text);">Resume Uploaded</h6>
-                <p class="small text-muted mb-3">{{ student.get_resume_filename }}</p>
-                <div class="d-grid gap-2">
-                    <a href="{% url 'students:download_resume' %}" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-download me-1"></i> Download
-                    </a>
-                    <a href="{% url 'students:upload_resume' %}" class="btn btn-light btn-sm">
-                        <i class="bi bi-arrow-repeat me-1"></i> Update
-                    </a>
-                </div>
-                {% else %}
-                <div class="mb-3">
-                    <div class="avatar-lg mx-auto"
-                        style="background: var(--warning-surface); color: var(--warning-text); font-size: 2rem;">
-                        <i class="bi bi-exclamation-triangle"></i>
-                    </div>
-                </div>
-                <h6 class="fw-bold" style="color: var(--warning-text);">No Resume</h6>
-                <p class="small text-muted mb-3">Upload your resume to complete your profile.</p>
-                <div class="d-grid">
-                    <a href="{% url 'students:upload_resume' %}" class="btn btn-primary btn-sm">
-                        <i class="bi bi-upload me-1"></i> Upload Resume
-                    </a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="card border-0 animate-fade-up delay-400">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-lightning me-2 text-primary"></i>
-                    Quick Actions
-                </h5>
-            </div>
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush">
-                    <a href="{% url 'students:profile' %}" class="list-group-item list-group-item-action border-0">
-                        <i class="bi bi-pencil-square me-2 text-primary"></i> Update Profile
-                    </a>
-                    <a href="{% url 'students:upload_resume' %}"
-                        class="list-group-item list-group-item-action border-0">
-                        <i class="bi bi-cloud-arrow-up me-2 text-primary"></i> Upload Resume
-                    </a>
-                    <a href="{% url 'students:drives_list' %}" class="list-group-item list-group-item-action border-0">
-                        <i class="bi bi-briefcase me-2 text-primary"></i> Browse Drives
-                    </a>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tips -->
-        <div class="card border-0 mt-4 animate-fade-up delay-400"
-            style="background: var(--primary-50); border: 1px solid var(--primary-100) !important;">
-            <div class="card-body">
-                <h6 class="fw-bold mb-2" style="color: var(--primary-800);">
-                    <i class="bi bi-lightbulb me-1"></i> Tips
-                </h6>
-                <ul class="small mb-0 ps-3" style="color: var(--primary-700);">
-                    <li>Keep your profile updated with latest skills</li>
-                    <li>Upload your resume in PDF format (max 10MB)</li>
-                    <li>Check drives regularly for new opportunities</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+    {% endblock %}

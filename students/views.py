@@ -27,6 +27,7 @@ def student_dashboard(request):
     context = {
         'student': student,
         'skills_list': student.get_skills_list(),
+        'profile_completion': student.get_profile_completion(),
     }
     return render(request, 'students/dashboard.html', context)
 

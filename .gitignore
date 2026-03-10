@@ -1,3 +1,46 @@
+# Environment & Secrets
 .env
-docs
-.pdf
+*.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Distribution / Packaging
+*.egg-info/
+*.egg
+dist/
+build/
+sdist/
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+
+# Media uploads
+media/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Docs & PDFs
+docs/
+*.pdf
