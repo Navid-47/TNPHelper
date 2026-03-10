@@ -117,3 +117,19 @@ class Student(models.Model):
         if self.resume:
             return os.path.basename(self.resume.name)
         return None
+
+    def get_profile_completion(self):
+        """Calculate profile completion percentage and list missing items."""
+        fields = [
+            (bool(self.name), 'Full Name'),
+            (bool(self.email), 'Email'),
+            (bool(self.roll_no), 'Roll Number'),
+            (bool(self.branch), 'Branch'),
+            (self.cgpa is not None and self.cgpa > 0, 'CGPA'),
+            (bool(self.skills and self.skills.strip()), 'Skills'),
+            (bool(self.resume), 'Resume'),
+        ]
+        completed = sum(1 for done, _ in fields if done)
+        missing = [name for done, name in fields if not done]
+        percentage = round(completed / len(fields) * 100)
+        return {'percentage': percentage, 'missing': missing, 'completed': completed, 'total': len(fields)}

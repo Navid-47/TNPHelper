@@ -22,6 +22,41 @@ import zipfile
 
 
 # ──────────────────────────────────────────────
+# Helpers
+# ──────────────────────────────────────────────
+
+def get_ellipsis_page_range(page_obj, on_each_side=1, on_ends=2):
+    """Build a page-number list with '...' ellipsis for large datasets."""
+    num_pages = page_obj.paginator.num_pages
+    current = page_obj.number
+
+    if num_pages <= (on_each_side + on_ends) * 2 + 1:
+        return list(range(1, num_pages + 1))
+
+    pages = []
+    # Left end
+    for i in range(1, on_ends + 1):
+        if i <= num_pages:
+            pages.append(i)
+    # Left ellipsis
+    if current - on_each_side > on_ends + 1:
+        pages.append('...')
+    # Around current
+    for i in range(max(on_ends + 1, current - on_each_side), min(num_pages - on_ends + 1, current + on_each_side + 1)):
+        if i not in pages:
+            pages.append(i)
+    # Right ellipsis
+    if current + on_each_side < num_pages - on_ends:
+        pages.append('...')
+    # Right end
+    for i in range(num_pages - on_ends + 1, num_pages + 1):
+        if i not in pages and i > 0:
+            pages.append(i)
+
+    return pages
+
+
+# ──────────────────────────────────────────────
 # Student Directory & Dashboard
 # ──────────────────────────────────────────────
 
@@ -37,8 +72,10 @@ def tpo_dashboard(request):
 
     context = {
         'form': form,
-        'page_obj': page_obj,
+        'students': page_obj,
+        'page_range': get_ellipsis_page_range(page_obj),
         'total_students': students.count(),
+        'branch_choices': Student.BRANCH_CHOICES,
     }
     return render(request, 'tpo/dashboard.html', context)
 
@@ -98,11 +135,16 @@ def tpo_analytics(request):
 
     # Branch Distribution
     branch_stats = list(students.values('branch').annotate(count=Count('id')).order_by('-count'))
+    # Attach human-readable branch names for templates
+    branch_name_map = dict(Student.BRANCH_CHOICES)
+    for item in branch_stats:
+        item['branch_name'] = branch_name_map.get(item['branch'], item['branch'])
 
     # Placement Statistics
     placed_count = students.filter(placement_status='placed').count()
+    in_process_count = students.filter(placement_status='in_process').count()
+    not_placed_count = students.filter(placement_status='not_placed').count()
     placement_rate = round(placed_count / total_students * 100, 2)
-    placement_stats = list(students.values('placement_status').annotate(count=Count('id')))
 
     # Top Skills
     all_skills = []
@@ -115,15 +157,29 @@ def tpo_analytics(request):
         students.values('branch').annotate(avg_cgpa=Avg('cgpa')).order_by('-avg_cgpa')
     )
 
+    # Branch-wise placement data (placed count + rate per branch)
+    branch_placement = []
+    for bs in branch_stats:
+        branch_total = bs['count']
+        branch_placed = students.filter(branch=bs['branch'], placement_status='placed').count()
+        rate = round(branch_placed / branch_total * 100, 1) if branch_total > 0 else 0
+        branch_placement.append({
+            'branch': bs['branch'],
+            'placed': branch_placed,
+            'rate': rate,
+        })
+
     context = {
         'total_students': total_students,
         'cgpa_distribution': cgpa_distribution,
         'branch_stats': branch_stats,
-        'placement_stats': placement_stats,
         'top_skills': top_skills,
         'avg_cgpa_by_branch': avg_cgpa_by_branch,
         'placement_rate': placement_rate,
         'placed_count': placed_count,
+        'in_process_count': in_process_count,
+        'not_placed_count': not_placed_count,
+        'branch_placement': branch_placement,
         'no_data': False,
     }
     return render(request, 'tpo/analytics.html', context)

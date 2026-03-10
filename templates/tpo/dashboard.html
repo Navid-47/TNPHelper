@@ -1,4 +1,4 @@
-﻿{% extends 'dashboard_base.html' %}
+{% extends 'dashboard_base.html' %}
 
 {% block title %}TPO Dashboard â€” TNP Portal{% endblock %}
 
@@ -57,13 +57,13 @@
                         <label class="form-label">
                             <i class="bi bi-check-circle me-1"></i> Status
                         </label>
-                        <select name="status" class="form-select">
+                        <select name="placement_status" class="form-select">
                             <option value="">All Status</option>
-                            <option value="placed" {% if request.GET.status == 'placed' %}selected{% endif %}>Placed
+                            <option value="placed" {% if request.GET.placement_status == 'placed' %}selected{% endif %}>Placed
                             </option>
-                            <option value="not_placed" {% if request.GET.status == 'not_placed' %}selected{% endif %}>Not
+                            <option value="not_placed" {% if request.GET.placement_status == 'not_placed' %}selected{% endif %}>Not
                                 Placed</option>
-                            <option value="in_process" {% if request.GET.status == 'in_process' %}selected{% endif %}>In
+                            <option value="in_process" {% if request.GET.placement_status == 'in_process' %}selected{% endif %}>In
                                 Process</option>
                         </select>
                     </div>
@@ -71,22 +71,22 @@
                         <label class="form-label">
                             <i class="bi bi-bar-chart me-1"></i> Min CGPA
                         </label>
-                        <input type="number" class="form-control" name="min_cgpa" value="{{ request.GET.min_cgpa }}"
+                        <input type="number" class="form-control" name="cgpa_min" value="{{ request.GET.cgpa_min }}"
                             placeholder="0.0" step="0.1" min="0" max="10">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">
                             <i class="bi bi-sort-down me-1"></i> Sort
                         </label>
-                        <select name="sort" class="form-select">
+                        <select name="sort_by" class="form-select">
                             <option value="">Default</option>
-                            <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>Name (Aâ†’Z)
+                            <option value="name" {% if request.GET.sort_by == 'name' %}selected{% endif %}>Name (Aâ†’Z)
                             </option>
-                            <option value="-name" {% if request.GET.sort == '-name' %}selected{% endif %}>Name (Zâ†’A)
+                            <option value="-name" {% if request.GET.sort_by == '-name' %}selected{% endif %}>Name (Zâ†’A)
                             </option>
-                            <option value="-cgpa" {% if request.GET.sort == '-cgpa' %}selected{% endif %}>CGPA (High)
+                            <option value="-cgpa" {% if request.GET.sort_by == '-cgpa' %}selected{% endif %}>CGPA (High)
                             </option>
-                            <option value="cgpa" {% if request.GET.sort == 'cgpa' %}selected{% endif %}>CGPA (Low)
+                            <option value="cgpa" {% if request.GET.sort_by == 'cgpa' %}selected{% endif %}>CGPA (Low)
                             </option>
                         </select>
                     </div>
@@ -137,8 +137,7 @@
                         <td>{{ student.roll_no }}</td>
                         <td>{{ student.get_branch_display_name }}</td>
                         <td><span class="badge rounded-pill"
-                                style="background: var(--primary-50); color: var(--primary-700);">{{ student.cgpa
-                                }}</span></td>
+                                style="background: var(--primary-50); color: var(--primary-700);">{{ student.cgpa}}</span></td>
                         <td>
                             <span class="status-badge status-{{ student.placement_status }}">
                                 {{ student.get_placement_status_display }}
@@ -173,12 +172,18 @@
                         </a>
                     </li>
                     {% endif %}
-                    {% for num in students.paginator.page_range %}
+                    {% for num in page_range %}
+                    {% if num == '...' %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&hellip;</span>
+                    </li>
+                    {% else %}
                     <li class="page-item {% if students.number == num %}active{% endif %}">
                         <a class="page-link"
                             href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{
                             num }}</a>
                     </li>
+                    {% endif %}
                     {% endfor %}
                     {% if students.has_next %}
                     <li class="page-item">
@@ -193,10 +198,12 @@
         </div>
         {% endif %}
         {% else %}
-        <div class="text-center py-5">
-            <i class="bi bi-people" style="font-size: 3rem; color: var(--slate-300);"></i>
-            <h5 class="mt-3 fw-bold" style="color: var(--slate-600);">No students found</h5>
-            <p class="text-muted">Try adjusting the filters above.</p>
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-people"></i>
+            </div>
+            <h5 class="mt-3 fw-bold" style="color: var(--slate-600);">No Students Found</h5>
+            <p class="text-muted mb-0">Try adjusting the filters above.</p>
         </div>
         {% endif %}
     </div>

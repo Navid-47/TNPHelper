@@ -4,6 +4,13 @@
 {% block title %}{{ student.name }} — TNP Portal{% endblock %}
 
 {% block content %}
+<nav class="breadcrumb-nav animate-fade-up">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'tpo:dashboard' %}"><i
+                    class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
+        <li class="breadcrumb-item active">{{ student.name }}</li>
+    </ol>
+</nav>
 <!-- Profile Header -->
 <div class="card border-0 mb-4 animate-fade-up" style="background: var(--gradient-hero); color: #fff;">
     <div class="card-body p-4">
