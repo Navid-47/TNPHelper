@@ -67,6 +67,10 @@
                 href="{% url 'students:drives_list' %}">
                 <i class="bi bi-briefcase"></i> Drives
             </a>
+            <a class="nav-link {% if request.resolver_match.url_name == 'my_applications' %}active{% endif %}"
+                href="{% url 'students:my_applications' %}">
+                <i class="bi bi-clipboard-check"></i> My Applications
+            </a>
             <a class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
                 href="{% url 'students:profile' %}">
                 <i class="bi bi-person"></i> Profile

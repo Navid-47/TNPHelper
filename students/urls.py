@@ -19,4 +19,5 @@ urlpatterns = [
     # Placement Drives
     path('drives/', views.drives_list, name='drives_list'),
     path('drives/<int:drive_id>/apply', views.apply_drive, name='apply_drive'),
+    path('my-applications/', views.my_applications, name='my_applications'),
 ]

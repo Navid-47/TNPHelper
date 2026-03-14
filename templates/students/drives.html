@@ -69,10 +69,17 @@
                 {% endif %}
             </div>
             <div class="card-footer bg-transparent border-top" style="border-color: var(--slate-100) !important;">
-                {% if drive.id in applied_drive_ids %}
-                <span class="btn btn-sm w-100 disabled"
-                    style="background: var(--success-surface); color: var(--success-text);">
-                    <i class="bi bi-check-circle me-1"></i> Applied
+                {% if drive.app_status %}
+                <span class="btn btn-sm w-100 disabled status-badge
+                    {% if drive.app_status == 'shortlisted' %}status-shortlisted
+                    {% elif drive.app_status == 'offered' %}status-offered
+                    {% elif drive.app_status == 'rejected' %}status-rejected
+                    {% else %}status-applied{% endif %}">
+                    {% if drive.app_status == 'shortlisted' %}<i class="bi bi-star-fill me-1"></i> Shortlisted
+                    {% elif drive.app_status == 'offered' %}<i class="bi bi-trophy-fill me-1"></i> Offered
+                    {% elif drive.app_status == 'rejected' %}<i class="bi bi-x-circle me-1"></i> Rejected
+                    {% else %}<i class="bi bi-check-circle me-1"></i> Applied
+                    {% endif %}
                 </span>
                 {% else %}
                 <form method="post" action="{% url 'students:apply_drive' drive.id %}" class="drive-apply-form">

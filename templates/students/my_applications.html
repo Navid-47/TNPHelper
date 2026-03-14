@@ -1,0 +1,85 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}My Applications — TNP Portal{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-nav animate-fade-up">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'students:dashboard' %}"><i
+                    class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
+        <li class="breadcrumb-item active">My Applications</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4 animate-fade-up">
+    <h4 class="fw-bold mb-0">
+        <i class="bi bi-clipboard-check me-2 text-primary"></i>
+        My Applications
+    </h4>
+    <a href="{% url 'students:drives_list' %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-briefcase me-1"></i> Browse Drives
+    </a>
+</div>
+
+{% if applications %}
+<div class="row g-4" id="applicationsGrid">
+    {% for app in applications %}
+    <div class="col-md-6 col-lg-4 animate-fade-up">
+        <div class="card card-hover h-100 border-0">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-1">{{ app.drive.company_name }}</h5>
+                        <p class="small mb-0" style="color: var(--slate-500);">{{ app.drive.role }}</p>
+                    </div>
+                    <span class="status-badge
+                        {% if app.status == 'shortlisted' %}status-shortlisted
+                        {% elif app.status == 'offered' %}status-offered
+                        {% elif app.status == 'rejected' %}status-rejected
+                        {% else %}status-applied{% endif %}">
+                        {% if app.status == 'shortlisted' %}<i class="bi bi-star-fill me-1"></i>
+                        {% elif app.status == 'offered' %}<i class="bi bi-trophy-fill me-1"></i>
+                        {% elif app.status == 'rejected' %}<i class="bi bi-x-circle me-1"></i>
+                        {% else %}<i class="bi bi-check-circle me-1"></i>
+                        {% endif %}
+                        {{ app.get_status_display }}
+                    </span>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge rounded-pill px-3 py-2"
+                        style="background: var(--primary-50); color: var(--primary-700);">
+                        <i class="bi bi-currency-rupee"></i> {{ app.drive.package }} LPA
+                    </span>
+                    {% if app.drive.status != 'active' %}
+                    <span class="badge rounded-pill px-3 py-2"
+                        style="background: var(--slate-100); color: var(--slate-600);">
+                        {{ app.drive.get_status_display }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                <p class="small mb-0" style="color: var(--slate-400);">
+                    <i class="bi bi-calendar3 me-1"></i>
+                    Applied: {{ app.applied_at|date:"M d, Y" }}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card border-0">
+    <div class="card-body empty-state">
+        <div class="empty-state-icon">
+            <i class="bi bi-clipboard"></i>
+        </div>
+        <h5 class="mt-3 fw-bold" style="color: var(--slate-600);">No Applications Yet</h5>
+        <p class="text-muted mb-3">You haven't applied to any placement drives yet.</p>
+        <a href="{% url 'students:drives_list' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-briefcase me-1"></i> Browse Drives
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

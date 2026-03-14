@@ -788,6 +788,21 @@ section.hero-section,
     color: #0d9488 !important;
 }
 
+.status-shortlisted {
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+}
+
+.status-rejected {
+    background: #fef2f2 !important;
+    color: #991b1b !important;
+}
+
+.status-offered {
+    background: #f0fdf4 !important;
+    color: #166534 !important;
+}
+
 .skill-badge {
     background: #f0fdfa !important;
     color: #0f766e !important;

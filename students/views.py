@@ -120,15 +120,20 @@ def drives_list(request):
     # Get all active drives
     drives = Drive.objects.filter(status='active').order_by('-created_at')
 
-    # Get drives the student has already applied to
-    applied_drive_ids = Application.objects.filter(
-        student=student
-    ).values_list('drive_id', flat=True)
+    # Get drives the student has already applied to — map drive_id → status
+    applied_drive_map = dict(
+        Application.objects.filter(
+            student=student
+        ).values_list('drive_id', 'status')
+    )
+
+    # Annotate each drive with its application status (or None)
+    for drive in drives:
+        drive.app_status = applied_drive_map.get(drive.id)
 
     context = {
         'drives': drives,
         'student': student,
-        'applied_drive_ids': list(applied_drive_ids),
     }
     return render(request, 'students/drives.html', context)
 
@@ -158,3 +163,23 @@ def apply_drive(request, drive_id):
     Application.objects.create(drive=drive, student=student)
     messages.success(request, f'Successfully applied to {drive.company_name} - {drive.role}!')
     return redirect('students:drives_list')
+
+
+@student_required
+def my_applications(request):
+    """Show all applications the student has submitted, with their current status."""
+    try:
+        student = request.user.student_profile
+    except Student.DoesNotExist:
+        messages.error(request, 'Student profile not found.')
+        return redirect('accounts:student_login')
+
+    applications = Application.objects.filter(
+        student=student
+    ).select_related('drive').order_by('-applied_at')
+
+    context = {
+        'applications': applications,
+        'student': student,
+    }
+    return render(request, 'students/my_applications.html', context)
