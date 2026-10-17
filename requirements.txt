@@ -1,6 +1,40 @@
-Django==3.2.24
-mysqlclient==2.1.1
-Pillow==9.5.0
-django-crispy-forms==1.14.0
-crispy-bootstrap5==0.7
-python-decouple==3.8 
+# ─────────────────────────────────────────────────────────────────────────────
+# TNPHelper — Resume Bank Management System
+# Python Dependencies
+# Target: AWS EC2 (Ubuntu/Amazon Linux) + Amazon RDS (MySQL)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Core Framework ────────────────────────────────────────────────────────────
+Django==4.2.16
+
+# ── Database Connectors ───────────────────────────────────────────────────────
+# MySQL connector for Amazon RDS / XAMPP (local dev)
+mysqlclient==2.2.4
+
+# ── Form Rendering (Bootstrap 5 styled forms) ─────────────────────────────────
+django-crispy-forms==2.3
+crispy-bootstrap5==2024.2
+
+# ── Production WSGI Server ────────────────────────────────────────────────────
+# Replaces Django's dev server on AWS EC2 (used with Nginx)
+gunicorn==23.0.0
+
+# ── Static File Serving ───────────────────────────────────────────────────────
+# Efficiently serves Django's collected static files in production
+whitenoise==6.8.2
+
+# ── Environment Variable Management ──────────────────────────────────────────
+# Loads SECRET_KEY, DB credentials, etc. from a .env file
+python-decouple==3.8
+
+# ── AWS SDK (optional — for S3 media file storage) ───────────────────────────
+# Uncomment if using S3 for resume PDF storage instead of local disk
+# boto3==1.35.0
+# django-storages[s3]==1.14.4
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Python Standard Library modules used (no pip install needed):
+#   csv      — CSV export of student data
+#   zipfile  — Bulk resume ZIP download
+#   os       — File path operations
+# ─────────────────────────────────────────────────────────────────────────────
