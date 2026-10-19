@@ -18,6 +18,7 @@ from .utils import apply_student_filters
 from collections import Counter
 import csv
 import os
+import uuid
 import zipfile
 
 
@@ -191,7 +192,7 @@ def tpo_analytics(request):
 
 @admin_required
 def download_resume(request, student_id):
-    """Download a specific student's resume."""
+    """Download a specific student's resume (TPO-authorized only)."""
     student = get_object_or_404(Student, id=student_id)
 
     if not student.resume:
@@ -201,7 +202,11 @@ def download_resume(request, student_id):
     if os.path.exists(student.resume.path):
         with open(student.resume.path, 'rb') as fh:
             response = HttpResponse(fh.read(), content_type='application/pdf')
-            response['Content-Disposition'] = f'attachment; filename="{student.get_resume_filename()}"'
+            # Use a generic, safe filename — never trust student-supplied data in headers
+            safe_filename = f"resume_{student.roll_no}.pdf"
+            response['Content-Disposition'] = f'attachment; filename="{safe_filename}"'
+            # Prevent MIME-type sniffing attacks
+            response['X-Content-Type-Options'] = 'nosniff'
             return response
     else:
         messages.error(request, 'Resume file not found.')
@@ -212,14 +217,26 @@ def download_resume(request, student_id):
 # Data Exports (CSV & ZIP)
 # ──────────────────────────────────────────────
 
+# CSV formula injection: cells starting with these chars can execute in spreadsheet apps
+_CSV_INJECTION_PREFIXES = ('=', '+', '-', '@', '\t', '\r')
+
+
+def _sanitize_csv_cell(value: str) -> str:
+    """Prefix formula-injection trigger characters with a single quote."""
+    if isinstance(value, str) and value and value[0] in _CSV_INJECTION_PREFIXES:
+        return "'" + value
+    return value
+
+
 @admin_required
 def export_csv(request):
-    """Export filtered student data as a CSV file."""
+    """Export filtered student data as a CSV file (TPO-authorized only)."""
     form = StudentFilterForm(request.GET)
     students = apply_student_filters(Student.objects.all(), form)
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="students_data.csv"'
+    response['X-Content-Type-Options'] = 'nosniff'
 
     writer = csv.writer(response)
     writer.writerow([
@@ -229,15 +246,15 @@ def export_csv(request):
 
     for student in students:
         writer.writerow([
-            student.roll_no,
-            student.name,
-            student.email,
-            student.get_branch_display_name(),
-            student.cgpa,
-            student.skills,
-            student.get_placement_status_display(),
-            student.company_name or '',
-            student.package or '',
+            _sanitize_csv_cell(str(student.roll_no)),
+            _sanitize_csv_cell(student.name),
+            _sanitize_csv_cell(student.email),
+            _sanitize_csv_cell(student.get_branch_display_name()),
+            student.cgpa,  # Decimal — safe, not a string formula
+            _sanitize_csv_cell(student.skills or ''),
+            _sanitize_csv_cell(student.get_placement_status_display()),
+            _sanitize_csv_cell(student.company_name or ''),
+            student.package or '',  # Decimal — safe
             'Yes' if student.resume else 'No',
         ])
 
@@ -246,18 +263,28 @@ def export_csv(request):
 
 @admin_required
 def bulk_download_resumes(request):
-    """Download all filtered student resumes as a ZIP file."""
+    """Download all filtered student resumes as a ZIP file (TPO-authorized only)."""
     form = StudentFilterForm(request.GET)
     students = apply_student_filters(Student.objects.all(), form)
 
     response = HttpResponse(content_type='application/zip')
     response['Content-Disposition'] = 'attachment; filename="student_resumes.zip"'
+    response['X-Content-Type-Options'] = 'nosniff'
 
-    with zipfile.ZipFile(response, 'w') as zip_file:
+    with zipfile.ZipFile(response, 'w', compression=zipfile.ZIP_DEFLATED) as zip_file:
+        seen_names: set[str] = set()
         for student in students:
             if student.resume and os.path.exists(student.resume.path):
-                filename = f"{student.roll_no}_{student.name}.pdf"
-                zip_file.write(student.resume.path, filename)
+                # Build a safe archive entry name — no path components from user data
+                # os.path.basename strips any directory traversal attempts
+                safe_roll = os.path.basename(str(student.roll_no))
+                safe_name = os.path.basename(student.name.replace('/', '_').replace('\\', '_'))
+                entry_name = f"{safe_roll}_{safe_name}.pdf"
+                # Deduplicate entry names to avoid ZIP overwrites
+                if entry_name in seen_names:
+                    entry_name = f"{safe_roll}_{uuid.uuid4().hex[:6]}.pdf"
+                seen_names.add(entry_name)
+                zip_file.write(student.resume.path, entry_name)
 
     return response
 
