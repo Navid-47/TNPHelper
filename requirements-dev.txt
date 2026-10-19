@@ -1,0 +1,22 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# TNPHelper — Development & Testing Dependencies
+# Install with: pip install -r requirements-dev.txt
+# (Install requirements.txt first)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Test runner ───────────────────────────────────────────────────────────────
+pytest==8.3.5
+pytest-django==4.9.0
+
+# ── Test coverage ─────────────────────────────────────────────────────────────
+coverage==7.6.10
+pytest-cov==6.0.0
+
+# ── Test data factories ───────────────────────────────────────────────────────
+factory-boy==3.3.1
+
+# ── Code quality (optional, useful in CI) ────────────────────────────────────
+flake8==7.1.1
+
+# ── Dependency locking ────────────────────────────────────────────────────────
+pip-tools==7.4.1
