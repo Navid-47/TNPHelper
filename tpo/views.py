@@ -7,7 +7,7 @@ All views use @admin_required to ensure only TPO admins can access them.
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from django.db.models import Count, Avg
 from django.core.paginator import Paginator
 from accounts.decorators import admin_required
@@ -193,25 +193,37 @@ def tpo_analytics(request):
 
 @admin_required
 def download_resume(request, student_id):
-    """Download a specific student's resume (TPO-authorized only)."""
+    """Download a specific student's resume (TPO-authorized only) streamed via FileResponse."""
     student = get_object_or_404(Student, id=student_id)
 
     if not student.resume:
         messages.error(request, 'No resume uploaded for this student.')
         return redirect('tpo:student_detail', student_id=student_id)
 
-    if os.path.exists(student.resume.path):
-        with open(student.resume.path, 'rb') as fh:
-            response = HttpResponse(fh.read(), content_type='application/pdf')
-            # Use a generic, safe filename — never trust student-supplied data in headers
-            safe_filename = f"resume_{student.roll_no}.pdf"
-            response['Content-Disposition'] = f'attachment; filename="{safe_filename}"'
-            # Prevent MIME-type sniffing attacks
-            response['X-Content-Type-Options'] = 'nosniff'
-            return response
-    else:
+    try:
+        if not student.resume.storage.exists(student.resume.name):
+            messages.error(request, 'Resume file not found.')
+            return redirect('tpo:student_detail', student_id=student_id)
+
+        # Build safe download filename from student roll number
+        clean_roll = re.sub(r'[^a-zA-Z0-9_\-]', '', str(student.roll_no)) or 'student'
+        safe_filename = f"resume_{clean_roll}.pdf"
+
+        # Stream file in chunks using FileResponse (avoids loading into RAM)
+        file_handle = student.resume.open('rb')
+        response = FileResponse(
+            file_handle,
+            content_type='application/pdf',
+            as_attachment=True,
+            filename=safe_filename
+        )
+        # Prevent MIME-type sniffing attacks
+        response['X-Content-Type-Options'] = 'nosniff'
+        return response
+    except (FileNotFoundError, ValueError):
         messages.error(request, 'Resume file not found.')
         return redirect('tpo:student_detail', student_id=student_id)
+
 
 
 # ──────────────────────────────────────────────

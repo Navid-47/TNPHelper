@@ -16,7 +16,7 @@ from unittest.mock import patch, MagicMock
 
 from django.test import TestCase, Client, override_settings
 
-from conftest import StudentFactory, make_pdf_file, make_fake_pdf_file, make_non_pdf_file
+from conftest import StudentFactory, AdminUserFactory, make_pdf_file, make_fake_pdf_file, make_non_pdf_file
 from students.forms import ResumeUploadForm
 
 
@@ -139,4 +139,91 @@ class ResumeDownloadAuthorizationTest(TestCase):
         """A student must not be able to hit the TPO download endpoint."""
         response = self.client_a.get(f'/tpo/download-resume/{self.student_b.id}/')
         self.assertNotEqual(response.status_code, 200)
+
+
+class ResumeReplacementAndStreamingTest(TestCase):
+    """
+    Tests for:
+    - Safe resume replacement (old file replaced ONLY after successful upload;
+      if upload fails, original resume is preserved).
+    - Downloads stream via FileResponse rather than loading into memory.
+    """
+
+    def setUp(self):
+        self.student = StudentFactory()
+        self.client = Client()
+        self.client.force_login(self.student.user)
+
+    def test_successful_replacement_deletes_old_file_from_storage(self):
+        # 1. Upload first resume
+        pdf1 = make_pdf_file('first_resume.pdf')
+        res1 = self.client.post('/student/upload-resume/', {'resume': pdf1}, follow=True)
+        self.assertEqual(res1.status_code, 200)
+
+        self.student.refresh_from_db()
+        first_file_name = self.student.resume.name
+        self.assertTrue(self.student.resume.storage.exists(first_file_name))
+
+        # 2. Upload replacement resume
+        pdf2 = make_pdf_file('second_resume.pdf')
+        res2 = self.client.post('/student/upload-resume/', {'resume': pdf2}, follow=True)
+        self.assertEqual(res2.status_code, 200)
+
+        self.student.refresh_from_db()
+        second_file_name = self.student.resume.name
+        self.assertNotEqual(first_file_name, second_file_name)
+        # New file exists
+        self.assertTrue(self.student.resume.storage.exists(second_file_name))
+        # Old file was cleaned up from storage
+        self.assertFalse(self.student.resume.storage.exists(first_file_name))
+
+    def test_failed_upload_preserves_existing_resume(self):
+        # 1. Upload valid resume
+        pdf1 = make_pdf_file('initial.pdf')
+        self.client.post('/student/upload-resume/', {'resume': pdf1}, follow=True)
+
+        self.student.refresh_from_db()
+        original_file_name = self.student.resume.name
+        self.assertTrue(self.student.resume.storage.exists(original_file_name))
+
+        # 2. Attempt to upload an invalid file (fake PDF fails validation)
+        fake_pdf = make_fake_pdf_file('bad.pdf')
+        res = self.client.post('/student/upload-resume/', {'resume': fake_pdf}, follow=True)
+        self.assertContains(res, 'The file does not appear to be a valid PDF')
+
+        # 3. Original file must STILL exist in storage and in DB
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.resume.name, original_file_name)
+        self.assertTrue(self.student.resume.storage.exists(original_file_name))
+
+    def test_student_download_streams_file_response(self):
+        # Upload valid resume
+        pdf = make_pdf_file('my_resume.pdf')
+        self.client.post('/student/upload-resume/', {'resume': pdf}, follow=True)
+
+        response = self.client.get('/student/download-resume/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.streaming)
+        self.assertEqual(response.headers.get('Content-Type'), 'application/pdf')
+        self.assertIn('attachment; filename="resume.pdf"', response.headers.get('Content-Disposition', ''))
+        self.assertEqual(response.headers.get('X-Content-Type-Options'), 'nosniff')
+
+    def test_tpo_download_streams_file_response(self):
+        # Upload valid resume for student
+        pdf = make_pdf_file('student_doc.pdf')
+        self.client.post('/student/upload-resume/', {'resume': pdf}, follow=True)
+        self.student.refresh_from_db()
+
+        # Admin downloads student's resume
+        admin_user = AdminUserFactory()
+        admin_client = Client()
+        admin_client.force_login(admin_user)
+
+        response = admin_client.get(f'/tpo/download-resume/{self.student.id}/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.streaming)
+        self.assertEqual(response.headers.get('Content-Type'), 'application/pdf')
+        self.assertIn(f'attachment; filename="resume_{self.student.roll_no}.pdf"', response.headers.get('Content-Disposition', ''))
+        self.assertEqual(response.headers.get('X-Content-Type-Options'), 'nosniff')
+
 

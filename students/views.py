@@ -7,7 +7,7 @@ All views use @student_required to ensure only students can access them.
 """
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from accounts.decorators import student_required
 from .models import Student
 from .forms import StudentProfileForm, ResumeUploadForm
@@ -59,7 +59,7 @@ def student_profile(request):
 
 @student_required
 def upload_resume(request):
-    """Handle resume PDF upload — replaces existing resume if any."""
+    """Handle resume PDF upload — replaces existing resume only after successful upload."""
     try:
         student = request.user.student_profile
     except Student.DoesNotExist:
@@ -67,12 +67,20 @@ def upload_resume(request):
         return redirect('accounts:student_login')
 
     if request.method == 'POST':
+        # Capture the existing resume name BEFORE binding the form, since form validation
+        # updates the bound instance in-memory with the new uploaded file
+        old_resume_name = student.resume.name if (student.resume and student.resume.name) else None
+        old_storage = student.resume.storage if student.resume else None
+
         form = ResumeUploadForm(request.POST, request.FILES, instance=student)
         if form.is_valid():
-            # Delete old resume file if it exists
-            if student.resume and os.path.exists(student.resume.path):
-                os.remove(student.resume.path)
-            form.save()
+            new_student = form.save()
+            # If replacement succeeded and an older resume existed, delete the old file safely from storage
+            if old_resume_name and old_storage and old_resume_name != new_student.resume.name:
+                try:
+                    old_storage.delete(old_resume_name)
+                except Exception:
+                    pass
             messages.success(request, 'Resume uploaded successfully!')
             return redirect('students:dashboard')
     else:
@@ -87,7 +95,7 @@ def upload_resume(request):
 
 @student_required
 def download_resume(request):
-    """Allow students to download their own resume."""
+    """Allow students to download their own resume, streamed via FileResponse."""
     try:
         student = request.user.student_profile
     except Student.DoesNotExist:
@@ -98,17 +106,26 @@ def download_resume(request):
         messages.error(request, 'No resume uploaded yet.')
         return redirect('students:dashboard')
 
-    if os.path.exists(student.resume.path):
-        with open(student.resume.path, 'rb') as fh:
-            response = HttpResponse(fh.read(), content_type='application/pdf')
-            # attachment: forces download, prevents browser from rendering
-            response['Content-Disposition'] = f'attachment; filename="resume.pdf"'
-            # Prevent MIME-type sniffing attacks
-            response['X-Content-Type-Options'] = 'nosniff'
-            return response
-    else:
+    try:
+        if not student.resume.storage.exists(student.resume.name):
+            messages.error(request, 'Resume file not found.')
+            return redirect('students:dashboard')
+
+        # Stream file in chunks using FileResponse (avoids loading into RAM)
+        file_handle = student.resume.open('rb')
+        response = FileResponse(
+            file_handle,
+            content_type='application/pdf',
+            as_attachment=True,
+            filename='resume.pdf'
+        )
+        # Prevent MIME-type sniffing attacks
+        response['X-Content-Type-Options'] = 'nosniff'
+        return response
+    except (FileNotFoundError, ValueError):
         messages.error(request, 'Resume file not found.')
         return redirect('students:dashboard')
+
 
 
 
