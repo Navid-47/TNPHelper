@@ -107,15 +107,48 @@ WSGI_APPLICATION = 'resume_bank.wsgi.application'
 
 # ──────────────────────────────────────────────
 # Database — MySQL (all values from env)
+# In production (DEBUG=False), DB_NAME, DB_USER, DB_PASSWORD, and DB_HOST
+# are mandatory and must be explicitly configured using a least-privilege account.
 # ──────────────────────────────────────────────
+if DEBUG:
+    DB_NAME = config('DB_NAME', default='tnp_db')
+    DB_USER = config('DB_USER', default='tnphelper')
+    DB_PASSWORD = config('DB_PASSWORD', default='')
+    DB_HOST = config('DB_HOST', default='localhost')
+    DB_PORT = config('DB_PORT', default='3306')
+else:
+    DB_NAME = config('DB_NAME', default=None)
+    DB_USER = config('DB_USER', default=None)
+    DB_PASSWORD = config('DB_PASSWORD', default=None)
+    DB_HOST = config('DB_HOST', default=None)
+    DB_PORT = config('DB_PORT', default='3306')
+
+    missing_db_vars = []
+    if not DB_NAME:
+        missing_db_vars.append('DB_NAME')
+    if not DB_USER:
+        missing_db_vars.append('DB_USER')
+    if DB_PASSWORD is None or DB_PASSWORD == '':
+        missing_db_vars.append('DB_PASSWORD')
+    if not DB_HOST:
+        missing_db_vars.append('DB_HOST')
+
+    if missing_db_vars:
+        raise ImproperlyConfigured(
+            f"Production database configuration error: The following required database "
+            f"environment variable(s) must be explicitly configured when DEBUG=False: "
+            f"{', '.join(missing_db_vars)}. Ensure a dedicated, least-privilege database "
+            f"account is used. See .env.example for details."
+        )
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME', default='tnp_db'),
-        'USER': config('DB_USER', default='tnphelper'),
-        'PASSWORD': config('DB_PASSWORD', default=''),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='3306'),
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
         'OPTIONS': {
             'charset': 'utf8mb4',
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
