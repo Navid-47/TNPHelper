@@ -1,14 +1,22 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # TNPHelper — Resume Bank Management System
 # Python Dependencies
-# Target: AWS EC2 (Ubuntu/Amazon Linux) + Amazon RDS (MySQL)
+# Target: Python 3.11+ | Django 5.2.x (LTS)
+# Target runtime: AWS EC2 (Ubuntu/Amazon Linux) + Amazon RDS (MySQL)
+#
+# System packages required for mysqlclient:
+#   Ubuntu/Debian: sudo apt-get install python3-dev default-libmysqlclient-dev build-essential pkg-config
+#   Amazon Linux:  sudo yum install mysql-devel gcc
+# See README.md for full setup instructions.
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── Core Framework ────────────────────────────────────────────────────────────
-Django==4.2.16
+# Django 5.2.x is an LTS release (supported until April 2028).
+# Requires Python 3.10, 3.11, 3.12, or 3.13.
+Django==5.2.18
 
 # ── Database Connectors ───────────────────────────────────────────────────────
-# MySQL connector for Amazon RDS / XAMPP (local dev)
+# MySQL connector for Amazon RDS / local dev (requires system libmysqlclient)
 mysqlclient==2.2.4
 
 # ── Form Rendering (Bootstrap 5 styled forms) ─────────────────────────────────
@@ -16,15 +24,15 @@ django-crispy-forms==2.3
 crispy-bootstrap5==2024.2
 
 # ── Production WSGI Server ────────────────────────────────────────────────────
-# Replaces Django's dev server on AWS EC2 (used with Nginx)
+# Used with Nginx on AWS EC2
 gunicorn==23.0.0
 
 # ── Static File Serving ───────────────────────────────────────────────────────
-# Efficiently serves Django's collected static files in production
+# Efficiently serves Django's collected static files; integrated via middleware
 whitenoise==6.8.2
 
 # ── Environment Variable Management ──────────────────────────────────────────
-# Loads SECRET_KEY, DB credentials, etc. from a .env file
+# Loads config from process environment / .env file
 python-decouple==3.8
 
 # ── AWS SDK (optional — for S3 media file storage) ───────────────────────────
@@ -36,5 +44,5 @@ python-decouple==3.8
 # Python Standard Library modules used (no pip install needed):
 #   csv      — CSV export of student data
 #   zipfile  — Bulk resume ZIP download
-#   os       — File path operations
+#   os, uuid — File path operations and UUID filename generation
 # ─────────────────────────────────────────────────────────────────────────────
