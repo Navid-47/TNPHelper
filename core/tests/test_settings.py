@@ -39,21 +39,90 @@ class ProductionSettingsSafetyTest(SimpleTestCase):
                 import resume_bank.settings as settings_module
                 importlib.reload(settings_module)
 
-    def test_debug_true_allows_default_key(self):
-        """
-        With DEBUG=True, the settings module should allow a default (insecure)
-        key without raising.
-        """
+    def test_missing_db_name_raises_in_production(self):
+        """Simulate loading settings with DEBUG=False and missing DB_NAME."""
         import os
-
         env_overrides = {
-            'DEBUG': 'True',
-            'SECRET_KEY': '',
+            'DEBUG': 'False',
+            'SECRET_KEY': 'valid-secret-key-for-test-purposes-only',
+            'DB_NAME': '',
+            'DB_USER': 'tnp_user',
+            'DB_PASSWORD': 'secret_password',
+            'DB_HOST': 'db.internal',
         }
+        with patch.dict(os.environ, env_overrides, clear=False):
+            with self.assertRaises(ImproperlyConfigured) as cm:
+                import resume_bank.settings as settings_module
+                importlib.reload(settings_module)
+            self.assertIn('DB_NAME', str(cm.exception))
 
+    def test_missing_db_user_raises_in_production(self):
+        """Simulate loading settings with DEBUG=False and missing DB_USER."""
+        import os
+        env_overrides = {
+            'DEBUG': 'False',
+            'SECRET_KEY': 'valid-secret-key-for-test-purposes-only',
+            'DB_NAME': 'tnp_prod_db',
+            'DB_USER': '',
+            'DB_PASSWORD': 'secret_password',
+            'DB_HOST': 'db.internal',
+        }
+        with patch.dict(os.environ, env_overrides, clear=False):
+            with self.assertRaises(ImproperlyConfigured) as cm:
+                import resume_bank.settings as settings_module
+                importlib.reload(settings_module)
+            self.assertIn('DB_USER', str(cm.exception))
+
+    def test_missing_db_password_raises_in_production(self):
+        """Simulate loading settings with DEBUG=False and missing/empty DB_PASSWORD."""
+        import os
+        env_overrides = {
+            'DEBUG': 'False',
+            'SECRET_KEY': 'valid-secret-key-for-test-purposes-only',
+            'DB_NAME': 'tnp_prod_db',
+            'DB_USER': 'tnp_user',
+            'DB_PASSWORD': '',
+            'DB_HOST': 'db.internal',
+        }
+        with patch.dict(os.environ, env_overrides, clear=False):
+            with self.assertRaises(ImproperlyConfigured) as cm:
+                import resume_bank.settings as settings_module
+                importlib.reload(settings_module)
+            self.assertIn('DB_PASSWORD', str(cm.exception))
+
+    def test_missing_db_host_raises_in_production(self):
+        """Simulate loading settings with DEBUG=False and missing DB_HOST."""
+        import os
+        env_overrides = {
+            'DEBUG': 'False',
+            'SECRET_KEY': 'valid-secret-key-for-test-purposes-only',
+            'DB_NAME': 'tnp_prod_db',
+            'DB_USER': 'tnp_user',
+            'DB_PASSWORD': 'secret_password',
+            'DB_HOST': '',
+        }
+        with patch.dict(os.environ, env_overrides, clear=False):
+            with self.assertRaises(ImproperlyConfigured) as cm:
+                import resume_bank.settings as settings_module
+                importlib.reload(settings_module)
+            self.assertIn('DB_HOST', str(cm.exception))
+
+    def test_valid_production_config_succeeds(self):
+        """With all required variables provided, DEBUG=False loads without error."""
+        import os
+        env_overrides = {
+            'DEBUG': 'False',
+            'SECRET_KEY': 'valid-secret-key-for-test-purposes-only',
+            'DB_NAME': 'tnp_prod_db',
+            'DB_USER': 'tnp_user',
+            'DB_PASSWORD': 'secret_password',
+            'DB_HOST': 'db.internal',
+            'ALLOWED_HOSTS': 'tnp.university.edu',
+        }
         with patch.dict(os.environ, env_overrides, clear=False):
             try:
                 import resume_bank.settings as settings_module
                 importlib.reload(settings_module)
             except ImproperlyConfigured:
-                self.fail("ImproperlyConfigured raised unexpectedly when DEBUG=True")
+                self.fail("ImproperlyConfigured raised unexpectedly with valid production settings")
+
