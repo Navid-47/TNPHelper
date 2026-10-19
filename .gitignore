@@ -61,3 +61,10 @@ Desktop.ini
 # Docs & PDFs
 docs/
 *.pdf
+
+# Testing & Coverage
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+
