@@ -126,16 +126,17 @@ class ResumeDownloadAuthorizationTest(TestCase):
         cannot request Student B's resume by URL manipulation.
         """
         # Student A has no resume; should redirect/error gracefully
-        response = self.client_a.get('/student/resume/download')
+        response = self.client_a.get('/student/download-resume/')
         # Should not return another student's data (200 with PDF bytes)
         self.assertNotEqual(response.get('Content-Type', ''), 'application/pdf')
 
     def test_unauthenticated_download_redirected(self):
         anon = Client()
-        response = anon.get('/student/resume/download')
+        response = anon.get('/student/download-resume/')
         self.assertIn(response.status_code, [301, 302])
 
     def test_tpo_resume_download_requires_tpo_role(self):
         """A student must not be able to hit the TPO download endpoint."""
-        response = self.client_a.get(f'/tpo/resume/{self.student_b.id}/')
+        response = self.client_a.get(f'/tpo/download-resume/{self.student_b.id}/')
         self.assertNotEqual(response.status_code, 200)
+

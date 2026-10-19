@@ -18,6 +18,7 @@ from .utils import apply_student_filters
 from collections import Counter
 import csv
 import os
+import re
 import uuid
 import zipfile
 
@@ -275,14 +276,14 @@ def bulk_download_resumes(request):
         seen_names: set[str] = set()
         for student in students:
             if student.resume and os.path.exists(student.resume.path):
-                # Build a safe archive entry name — no path components from user data
-                # os.path.basename strips any directory traversal attempts
-                safe_roll = os.path.basename(str(student.roll_no))
-                safe_name = os.path.basename(student.name.replace('/', '_').replace('\\', '_'))
-                entry_name = f"{safe_roll}_{safe_name}.pdf"
+                # Build a safe archive entry name — no path components or '..' from user data
+                clean_roll = re.sub(r'[^a-zA-Z0-9_\-]', '', str(student.roll_no)) or 'student'
+                clean_name = re.sub(r'[^a-zA-Z0-9_\- ]', '', student.name).strip() or 'resume'
+                clean_name = re.sub(r'\s+', '_', clean_name)
+                entry_name = f"{clean_roll}_{clean_name}.pdf"
                 # Deduplicate entry names to avoid ZIP overwrites
                 if entry_name in seen_names:
-                    entry_name = f"{safe_roll}_{uuid.uuid4().hex[:6]}.pdf"
+                    entry_name = f"{clean_roll}_{uuid.uuid4().hex[:6]}.pdf"
                 seen_names.add(entry_name)
                 zip_file.write(student.resume.path, entry_name)
 
