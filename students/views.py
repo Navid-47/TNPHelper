@@ -101,11 +101,15 @@ def download_resume(request):
     if os.path.exists(student.resume.path):
         with open(student.resume.path, 'rb') as fh:
             response = HttpResponse(fh.read(), content_type='application/pdf')
-            response['Content-Disposition'] = f'inline; filename="{student.get_resume_filename()}"'
+            # attachment: forces download, prevents browser from rendering
+            response['Content-Disposition'] = f'attachment; filename="resume.pdf"'
+            # Prevent MIME-type sniffing attacks
+            response['X-Content-Type-Options'] = 'nosniff'
             return response
     else:
         messages.error(request, 'Resume file not found.')
         return redirect('students:dashboard')
+
 
 
 @student_required

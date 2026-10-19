@@ -6,15 +6,22 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 import os
+import uuid
 
 
 def student_resume_path(instance, filename):
     """
-    Generate file path for student resume uploads.
-    Files are stored as: media/resumes/{roll_no}_resume.pdf
+    Generate a server-side file path for resume uploads.
+
+    The user-supplied filename is IGNORED to prevent path traversal and
+    predictable URLs. A UUID-based name is always used instead.
+    Files land under MEDIA_ROOT/resumes/ — NOT inside any web-served dir.
+
+    Example output: resumes/550e8400-e29b-41d4-a716-446655440000.pdf
     """
-    ext = filename.split('.')[-1]
-    new_filename = f"{instance.roll_no}_resume.{ext}"
+    # Always use .pdf regardless of what the user supplied; the form
+    # already validates that the file is a PDF before reaching here.
+    new_filename = f"{uuid.uuid4().hex}.pdf"
     return os.path.join('resumes', new_filename)
 
 
