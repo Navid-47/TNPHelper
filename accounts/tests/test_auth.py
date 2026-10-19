@@ -17,20 +17,20 @@ class AnonymousRedirectTest(TestCase):
     """Anonymous users must be redirected from all protected routes."""
 
     STUDENT_PROTECTED_URLS = [
-        '/student/dashboard',
-        '/student/profile',
-        '/student/resume/upload',
-        '/student/resume/download',
+        '/student/dashboard/',
+        '/student/profile/',
+        '/student/upload-resume/',
+        '/student/download-resume/',
         '/student/drives/',
-        '/student/applications/',
+        '/student/my-applications/',
     ]
 
     TPO_PROTECTED_URLS = [
-        '/tpo/',
+        '/tpo/dashboard/',
         '/tpo/analytics/',
         '/tpo/drives/',
-        '/tpo/export/csv/',
-        '/tpo/export/zip/',
+        '/tpo/export-csv/',
+        '/tpo/bulk-download/',
     ]
 
     def setUp(self):
@@ -67,7 +67,7 @@ class RoleAccessTest(TestCase):
         self.admin_client.force_login(self.admin_user)
 
     def test_student_cannot_access_tpo_dashboard(self):
-        response = self.student_client.get('/tpo/')
+        response = self.student_client.get('/tpo/dashboard/')
         # Should redirect (not 200)
         self.assertNotEqual(response.status_code, 200)
 
@@ -76,20 +76,20 @@ class RoleAccessTest(TestCase):
         self.assertNotEqual(response.status_code, 200)
 
     def test_student_cannot_access_csv_export(self):
-        response = self.student_client.get('/tpo/export/csv/')
+        response = self.student_client.get('/tpo/export-csv/')
         self.assertNotEqual(response.status_code, 200)
 
     def test_admin_can_access_tpo_dashboard(self):
-        response = self.admin_client.get('/tpo/')
+        response = self.admin_client.get('/tpo/dashboard/')
         self.assertEqual(response.status_code, 200)
 
     def test_admin_cannot_access_student_dashboard(self):
         """TPO admin should not be able to use the student portal."""
-        response = self.admin_client.get('/student/dashboard')
+        response = self.admin_client.get('/student/dashboard/')
         self.assertNotEqual(response.status_code, 200)
 
     def test_student_can_access_own_dashboard(self):
-        response = self.student_client.get('/student/dashboard')
+        response = self.student_client.get('/student/dashboard/')
         self.assertEqual(response.status_code, 200)
 
 
@@ -113,7 +113,7 @@ class StudentLoginTest(TestCase):
             'password': 'wrongpassword',
         })
         # Should not redirect to dashboard
-        self.assertNotEqual(response.get('Location', ''), '/student/dashboard')
+        self.assertNotEqual(response.get('Location', ''), '/student/dashboard/')
 
     def test_admin_cannot_use_student_login(self):
         """TPO admin credentials must not work on the student login form."""
@@ -122,6 +122,6 @@ class StudentLoginTest(TestCase):
             'username': admin.username,
             'password': 'testpass123',
         })
-        # Login should fail (user is not a student)
-        self.assertFalse(response.wsgi_request.user.is_authenticated
-                         or response.wsgi_request.user.role != 'student')
+        # Login should fail — user is not authenticated as a student
+        self.assertFalse(response.wsgi_request.user.is_authenticated)
+
