@@ -74,7 +74,12 @@ def upload_resume(request):
 
         form = ResumeUploadForm(request.POST, request.FILES, instance=student)
         if form.is_valid():
-            new_student = form.save()
+            try:
+                new_student = form.save()
+            except Exception:
+                messages.error(request, 'Failed to save resume. Please try again.')
+                return render(request, 'students/upload_resume.html', {'form': form, 'student': student})
+
             # If replacement succeeded and an older resume existed, delete the old file safely from storage
             if old_resume_name and old_storage and old_resume_name != new_student.resume.name:
                 try:

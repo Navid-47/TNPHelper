@@ -196,6 +196,26 @@ class ResumeReplacementAndStreamingTest(TestCase):
         self.assertEqual(self.student.resume.name, original_file_name)
         self.assertTrue(self.student.resume.storage.exists(original_file_name))
 
+    def test_save_failure_preserves_existing_resume(self):
+        # 1. Upload valid initial resume
+        pdf1 = make_pdf_file('initial.pdf')
+        self.client.post('/student/upload-resume/', {'resume': pdf1}, follow=True)
+
+        self.student.refresh_from_db()
+        original_file_name = self.student.resume.name
+        self.assertTrue(self.student.resume.storage.exists(original_file_name))
+
+        # 2. Attempt to upload a replacement, but save fails (simulated storage or DB failure)
+        pdf2 = make_pdf_file('second.pdf')
+        with patch.object(ResumeUploadForm, 'save', side_effect=RuntimeError('Simulated save error')):
+            res = self.client.post('/student/upload-resume/', {'resume': pdf2}, follow=True)
+            self.assertContains(res, 'Failed to save resume')
+
+        # 3. Old resume must STILL be intact in DB and in storage
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.resume.name, original_file_name)
+        self.assertTrue(self.student.resume.storage.exists(original_file_name))
+
     def test_student_download_streams_file_response(self):
         # Upload valid resume
         pdf = make_pdf_file('my_resume.pdf')
