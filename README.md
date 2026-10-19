@@ -1,7 +1,8 @@
 # TNPHelper — Resume Bank Management System
 
 > A full-featured web portal for university Training & Placement Cells.
-> Built with **Django 4.2**, **MySQL**, and **Bootstrap 5**.
+> Built with **Django 5.2 (LTS)**, **MySQL**, and **Bootstrap 5**.
+> Requires **Python 3.11+**.
 
 ---
 
@@ -758,6 +759,106 @@ Detailed design documents are available in the `docs/` folder:
 ## 📄 License
 
 This project is developed for educational purposes as part of a university engineering curriculum.
+
+---
+
+## 🤝 Developer-DevOps Contract
+
+> This section is the authoritative reference for the hand-off between the application developer and the DevOps/infrastructure team.
+
+### Python & Django versions
+
+| Component | Version |
+|---|---|
+| Python | **3.11 or 3.12** (3.10 and 3.13 also supported by Django 5.2) |
+| Django | **5.2.18** (LTS — supported until April 2028) |
+| WSGI server | gunicorn 23.x |
+
+### Required environment variables
+
+All variables below must be present in the process environment before the app starts.
+See [`.env.example`](.env.example) for the complete list with descriptions.
+
+| Variable | Required in prod? | Description |
+|---|---|---|
+| `SECRET_KEY` | **Yes — app refuses to start without it** | Long random Django secret key |
+| `DEBUG` | Yes (set `False`) | Must be `False` in production |
+| `ALLOWED_HOSTS` | Yes | Comma-separated hostnames (no `*`) |
+| `CSRF_TRUSTED_ORIGINS` | Yes (HTTPS) | Comma-separated origins with scheme |
+| `DB_NAME` | Yes | MySQL database name |
+| `DB_USER` | Yes | MySQL username (not root) |
+| `DB_PASSWORD` | Yes | MySQL password |
+| `DB_HOST` | Yes | MySQL host / RDS endpoint |
+| `DB_PORT` | Yes | MySQL port (usually `3306`) |
+| `MAX_RESUME_SIZE` | No (default 5 MB) | Max resume upload size in bytes |
+| `SECURE_SSL_REDIRECT` | No (default `True`) | Set `False` if Nginx handles redirects |
+| `SECURE_HSTS_SECONDS` | No (default 31536000) | HSTS duration |
+| `SESSION_COOKIE_SECURE` | No (default `True`) | Must be `True` behind HTTPS |
+| `CSRF_COOKIE_SECURE` | No (default `True`) | Must be `True` behind HTTPS |
+
+### Health endpoint
+
+```
+GET /healthz/          → 200 {"status": "ok"}   (shallow, no DB)
+GET /healthz/?deep=1   → 200 {"status": "ok"}   (pings DB with SELECT 1)
+                        → 503 {"status": "error"} (DB unreachable)
+```
+
+- No authentication required
+- No CSRF required
+- Returns JSON; Content-Type: application/json
+- Safe to expose to load balancer health checks
+
+### Deployment commands (run as the app user)
+
+```bash
+# 1. Install dependencies (requires system packages for mysqlclient — see below)
+pip install -r requirements.txt
+
+# 2. Apply database migrations (NEVER run makemigrations in deploy)
+python manage.py migrate --noinput
+
+# 3. Collect static files
+python manage.py collectstatic --noinput
+
+# 4. Start Gunicorn
+gunicorn resume_bank.wsgi:application --bind unix:/run/gunicorn.sock
+```
+
+### System packages required for mysqlclient
+
+```bash
+# Ubuntu / Debian
+sudo apt-get install python3-dev default-libmysqlclient-dev build-essential pkg-config
+
+# Amazon Linux 2 / RHEL
+sudo yum install mysql-devel gcc python3-devel
+```
+
+### CI gate
+
+Add this to your CI pipeline to prevent secrets being committed:
+
+```bash
+python scripts/check_repo_clean.py
+```
+
+Exits 1 if any `.sql`, `.pdf`, `.env`, `.pem`, `.key` or other forbidden file types are tracked in Git.
+
+### Static and media files
+
+| Type | Location | Served by |
+|---|---|---|
+| Static (CSS/JS) | `staticfiles/` (after `collectstatic`) | Nginx directly |
+| Media (resumes) | `media/resumes/` | **NOT public** — Django authenticated views only |
+
+> ⚠️ **Nginx must NOT add a public alias for `media/`.** Resume files are served exclusively through authenticated Django views that enforce ownership checks.
+
+### WSGI entry point
+
+```
+resume_bank.wsgi:application
+```
 
 ---
 
