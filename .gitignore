@@ -1,6 +1,23 @@
-# Environment & Secrets
+# ── Secrets & Environment ─────────────────────────────────────────────────────
+# Real .env files must NEVER be committed.
 .env
-*.env
+.env.*
+# Allow the example template (has no real values)
+!.env.example
+
+# ── Database dumps / exports (sensitive) ─────────────────────────────────────
+*.sql
+*.dump
+*.sqlite
+db.sqlite3
+db.sqlite3-journal
+
+# ── Private keys & certificates ───────────────────────────────────────────────
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
 
 # Python
 __pycache__/
