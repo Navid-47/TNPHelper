@@ -68,3 +68,6 @@ docs/
 htmlcov/
 .pytest_cache/
 
+# Local planning & task scratch notes
+plan_and_baseline.md
+work.md

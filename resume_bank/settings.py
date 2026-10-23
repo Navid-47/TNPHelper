@@ -183,13 +183,36 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ──────────────────────────────────────────────
-# Media files (Uploaded resumes)
+# Media files (Uploaded resumes — local fallback)
 # NOTE: MEDIA_URL is intentionally NOT served in production.
 # Nginx must NOT expose MEDIA_ROOT publicly.
-# Resume downloads go through authenticated Django views only.
+# Resume downloads go through authenticated Django views (signed URLs on S3).
 # ──────────────────────────────────────────────
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# ──────────────────────────────────────────────
+# AWS S3 — Private Resume Storage
+# When AWS_STORAGE_BUCKET_NAME is set, resumes are stored in a private S3
+# bucket and accessed via time-limited pre-signed URLs.  Leave it unset to
+# fall back to local disk storage (development / CI).
+# ──────────────────────────────────────────────
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default='')
+AWS_S3_REGION_NAME      = config('AWS_S3_REGION_NAME',      default='ap-south-1')
+AWS_ACCESS_KEY_ID       = config('AWS_ACCESS_KEY_ID',       default='')
+AWS_SECRET_ACCESS_KEY   = config('AWS_SECRET_ACCESS_KEY',   default='')
+
+# Seconds a pre-signed download URL remains valid (default: 5 minutes).
+# Increase if users need longer download windows (e.g. slow connections).
+AWS_S3_PRESIGNED_URL_EXPIRY = config('AWS_S3_PRESIGNED_URL_EXPIRY', default=300, cast=int)
+
+# django-storages: do NOT set a public ACL on uploaded objects
+AWS_DEFAULT_ACL = None
+# django-storages: use path-style S3 URLs when needed (e.g. LocalStack)
+AWS_S3_ADDRESSING_STYLE = 'path'
+# Prevent django-storages from appending query-string signatures to FileField.url
+# (we generate our own pre-signed URLs in views / storage.py)
+AWS_QUERYSTRING_AUTH = False
 
 # ──────────────────────────────────────────────
 # File Upload Settings

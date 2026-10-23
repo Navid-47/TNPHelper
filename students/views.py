@@ -100,7 +100,14 @@ def upload_resume(request):
 
 @student_required
 def download_resume(request):
-    """Allow students to download their own resume, streamed via FileResponse."""
+    """
+    Allow students to download their own resume.
+
+    S3 mode  → HTTP 302 redirect to a time-limited pre-signed URL.
+               The browser streams the file directly from S3 — Django
+               does NOT proxy the bytes, reducing EC2 bandwidth.
+    Local    → File streamed via Django FileResponse (dev / CI).
+    """
     try:
         student = request.user.student_profile
     except Student.DoesNotExist:
@@ -111,25 +118,37 @@ def download_resume(request):
         messages.error(request, 'No resume uploaded yet.')
         return redirect('students:dashboard')
 
+    from students.storage import get_resume_url, get_resume_content, _using_s3
+
     try:
+        if _using_s3():
+            # Redirect to S3 pre-signed URL — browser downloads directly
+            url = get_resume_url(student)
+            if not url:
+                messages.error(request, 'Could not generate download link. Please try again.')
+                return redirect('students:dashboard')
+            from django.http import HttpResponseRedirect
+            return HttpResponseRedirect(url)
+
+        # Local fallback: stream from disk
         if not student.resume.storage.exists(student.resume.name):
             messages.error(request, 'Resume file not found.')
             return redirect('students:dashboard')
 
-        # Stream file in chunks using FileResponse (avoids loading into RAM)
-        file_handle = student.resume.open('rb')
+        file_handle = get_resume_content(student)
         response = FileResponse(
             file_handle,
             content_type='application/pdf',
             as_attachment=True,
             filename='resume.pdf'
         )
-        # Prevent MIME-type sniffing attacks
         response['X-Content-Type-Options'] = 'nosniff'
         return response
-    except (FileNotFoundError, ValueError):
+    except Exception:
         messages.error(request, 'Resume file not found.')
         return redirect('students:dashboard')
+
+
 
 
 

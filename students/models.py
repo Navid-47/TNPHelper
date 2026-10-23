@@ -1,6 +1,11 @@
 """
 Student model for Resume Bank Management System.
 Stores student profile information, academic details, and resume.
+
+Resume storage:
+  - AWS S3 private bucket (production): files stored under resumes/<uuid>.pdf
+    and fetched via pre-signed URLs generated in views.
+  - Local filesystem (development): files stored under MEDIA_ROOT/resumes/.
 """
 from django.db import models
 from django.conf import settings
@@ -15,14 +20,27 @@ def student_resume_path(instance, filename):
 
     The user-supplied filename is IGNORED to prevent path traversal and
     predictable URLs. A UUID-based name is always used instead.
-    Files land under MEDIA_ROOT/resumes/ — NOT inside any web-served dir.
 
-    Example output: resumes/550e8400-e29b-41d4-a716-446655440000.pdf
+    On S3  : key  = resumes/<uuid>.pdf  (private bucket object key)
+    On disk: path = MEDIA_ROOT/resumes/<uuid>.pdf
     """
     # Always use .pdf regardless of what the user supplied; the form
     # already validates that the file is a PDF before reaching here.
     new_filename = f"{uuid.uuid4().hex}.pdf"
     return os.path.join('resumes', new_filename)
+
+
+def _get_resume_storage():
+    """
+    Return the storage backend to use for resume uploads.
+    PrivateS3ResumeStorage is used when AWS_STORAGE_BUCKET_NAME is configured;
+    LocalResumeStorage is the fallback for local dev / CI.
+    """
+    from students.storage import PrivateS3ResumeStorage, LocalResumeStorage  # noqa: avoid circular at module load
+    if getattr(settings, 'AWS_STORAGE_BUCKET_NAME', ''):
+        return PrivateS3ResumeStorage()
+    return LocalResumeStorage()
+
 
 
 class Student(models.Model):
@@ -69,11 +87,14 @@ class Student(models.Model):
     skills = models.TextField(help_text="Skills (comma-separated)")
 
     # Resume file (optional — student can upload later)
+    # storage=_get_resume_storage: evaluated at request time — picks S3 or local disk
+    # depending on whether AWS_STORAGE_BUCKET_NAME is set.
     resume = models.FileField(
         upload_to=student_resume_path,
+        storage=_get_resume_storage,
         blank=True,
         null=True,
-        help_text="Upload resume in PDF format (max 10MB)"
+        help_text="Upload resume in PDF format (max 5MB)"
     )
 
     # ── Placement Status ──

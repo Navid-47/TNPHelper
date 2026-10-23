@@ -35,10 +35,10 @@ whitenoise==6.8.2
 # Loads config from process environment / .env file
 python-decouple==3.8
 
-# ── AWS SDK (optional — for S3 media file storage) ───────────────────────────
-# Uncomment if using S3 for resume PDF storage instead of local disk
-# boto3==1.35.0
-# django-storages[s3]==1.14.4
+# ── AWS SDK (for S3 media file storage) ──────────────────────────────────────
+# Required for storing resume PDFs in Amazon S3 private bucket
+boto3==1.35.0
+django-storages[s3]==1.14.4
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Python Standard Library modules used (no pip install needed):

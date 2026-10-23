@@ -193,34 +193,48 @@ def tpo_analytics(request):
 
 @admin_required
 def download_resume(request, student_id):
-    """Download a specific student's resume (TPO-authorized only) streamed via FileResponse."""
+    """
+    Download a specific student's resume (TPO-authorized only).
+
+    S3 mode  → HTTP 302 redirect to a time-limited pre-signed URL.
+               The browser fetches the PDF directly from S3.
+    Local    → File streamed via Django FileResponse (dev / CI).
+    """
+    from students.storage import get_resume_url, get_resume_content, _using_s3
     student = get_object_or_404(Student, id=student_id)
 
     if not student.resume:
         messages.error(request, 'No resume uploaded for this student.')
         return redirect('tpo:student_detail', student_id=student_id)
 
+    # Build safe download filename from student roll number
+    clean_roll = re.sub(r'[^a-zA-Z0-9_\-]', '', str(student.roll_no)) or 'student'
+    safe_filename = f"resume_{clean_roll}.pdf"
+
     try:
+        if _using_s3():
+            url = get_resume_url(student)
+            if not url:
+                messages.error(request, 'Could not generate download link.')
+                return redirect('tpo:student_detail', student_id=student_id)
+            from django.http import HttpResponseRedirect
+            return HttpResponseRedirect(url)
+
+        # Local fallback
         if not student.resume.storage.exists(student.resume.name):
             messages.error(request, 'Resume file not found.')
             return redirect('tpo:student_detail', student_id=student_id)
 
-        # Build safe download filename from student roll number
-        clean_roll = re.sub(r'[^a-zA-Z0-9_\-]', '', str(student.roll_no)) or 'student'
-        safe_filename = f"resume_{clean_roll}.pdf"
-
-        # Stream file in chunks using FileResponse (avoids loading into RAM)
-        file_handle = student.resume.open('rb')
+        file_handle = get_resume_content(student)
         response = FileResponse(
             file_handle,
             content_type='application/pdf',
             as_attachment=True,
             filename=safe_filename
         )
-        # Prevent MIME-type sniffing attacks
         response['X-Content-Type-Options'] = 'nosniff'
         return response
-    except (FileNotFoundError, ValueError):
+    except Exception:
         messages.error(request, 'Resume file not found.')
         return redirect('tpo:student_detail', student_id=student_id)
 
@@ -276,7 +290,14 @@ def export_csv(request):
 
 @admin_required
 def bulk_download_resumes(request):
-    """Download all filtered student resumes as a ZIP file (TPO-authorized only)."""
+    """
+    Download all filtered student resumes as a single ZIP file (TPO-authorized only).
+
+    S3 mode  → Reads each file from S3 into memory before writing to the ZIP.
+               (Suitable for typical resume sizes; do not use for very large sets.)
+    Local    → Reads directly from the local filesystem path.
+    """
+    from students.storage import get_resume_content, _using_s3
     form = StudentFilterForm(request.GET)
     students = apply_student_filters(Student.objects.all(), form)
 
@@ -284,20 +305,40 @@ def bulk_download_resumes(request):
     response['Content-Disposition'] = 'attachment; filename="student_resumes.zip"'
     response['X-Content-Type-Options'] = 'nosniff'
 
+    using_s3 = _using_s3()
+
     with zipfile.ZipFile(response, 'w', compression=zipfile.ZIP_DEFLATED) as zip_file:
         seen_names: set[str] = set()
         for student in students:
-            if student.resume and os.path.exists(student.resume.path):
-                # Build a safe archive entry name — no path components or '..' from user data
-                clean_roll = re.sub(r'[^a-zA-Z0-9_\-]', '', str(student.roll_no)) or 'student'
-                clean_name = re.sub(r'[^a-zA-Z0-9_\- ]', '', student.name).strip() or 'resume'
-                clean_name = re.sub(r'\s+', '_', clean_name)
-                entry_name = f"{clean_roll}_{clean_name}.pdf"
-                # Deduplicate entry names to avoid ZIP overwrites
-                if entry_name in seen_names:
-                    entry_name = f"{clean_roll}_{uuid.uuid4().hex[:6]}.pdf"
-                seen_names.add(entry_name)
-                zip_file.write(student.resume.path, entry_name)
+            if not student.resume:
+                continue
+
+            # ── Check file existence / readability ─────────────────────────
+            try:
+                if using_s3:
+                    # S3: fetch content into memory (StreamingBody)
+                    file_obj = get_resume_content(student)
+                    file_bytes = file_obj.read()
+                else:
+                    # Local: verify file exists on disk
+                    if not os.path.exists(student.resume.path):
+                        continue
+                    with open(student.resume.path, 'rb') as f:
+                        file_bytes = f.read()
+            except Exception:
+                continue  # skip unavailable files gracefully
+
+            # ── Build a safe archive entry name ────────────────────────────
+            clean_roll = re.sub(r'[^a-zA-Z0-9_\-]', '', str(student.roll_no)) or 'student'
+            clean_name = re.sub(r'[^a-zA-Z0-9_\- ]', '', student.name).strip() or 'resume'
+            clean_name = re.sub(r'\s+', '_', clean_name)
+            entry_name = f"{clean_roll}_{clean_name}.pdf"
+            # Deduplicate entry names to avoid ZIP overwrites
+            if entry_name in seen_names:
+                entry_name = f"{clean_roll}_{uuid.uuid4().hex[:6]}.pdf"
+            seen_names.add(entry_name)
+
+            zip_file.writestr(entry_name, file_bytes)
 
     return response
 
