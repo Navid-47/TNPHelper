@@ -1,0 +1,379 @@
+
+name: Django Production CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: django-cicd-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PYTHON_VERSION: "3.11.5"
+
+jobs:
+  # --------------------------------------------------
+  # 1. Django checks and unit tests
+  # --------------------------------------------------
+  test:
+    name: Python Tests and Django Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+          if [ -f requirements-dev.txt ]; then
+            pip install -r requirements-dev.txt
+          fi
+
+      - name: Django system checks
+        env:
+          DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
+          SECRET_KEY: ${{ secrets.CI_SECRET_KEY }}
+          DEBUG: "False"
+          ALLOWED_HOSTS: aws.dns.com
+        run: |
+          python manage.py check
+          python manage.py check --deploy
+
+      - name: Unit tests
+        env:
+          DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
+          SECRET_KEY: ${{ secrets.CI_SECRET_KEY }}
+          DEBUG: "False"
+          ALLOWED_HOSTS: aws.dns.com
+        run: python manage.py test
+
+  # --------------------------------------------------
+  # 2. SonarQube code analysis
+  # --------------------------------------------------
+  sonar:
+    name: SonarQube Analysis
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies for coverage
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+          if [ -f requirements-dev.txt ]; then
+            pip install -r requirements-dev.txt
+          fi
+
+          pip install coverage
+
+      - name: Run tests with coverage
+        env:
+          DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
+          SECRET_KEY: ${{ secrets.CI_SECRET_KEY }}
+          DEBUG: "False"
+          ALLOWED_HOSTS: aws.dns.com
+        run: |
+          coverage run manage.py test
+          coverage xml -o coverage.xml
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }}
+            -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+
+      - name: SonarQube Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@v1
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # --------------------------------------------------
+  # 3. Filesystem, dependency and secrets scanning
+  # --------------------------------------------------
+  filesystem-security:
+    name: Trivy Filesystem and Secrets Scan
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig,secret
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+          format: table
+
+  # --------------------------------------------------
+  # 4. Infrastructure-as-code configuration scanning
+  # --------------------------------------------------
+  infrastructure-config-security:
+    name: Checkov Configuration Scan
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Checkov scan
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          framework: dockerfile,docker_compose,kubernetes,github_actions
+          soft_fail: false
+          quiet: true
+
+  # --------------------------------------------------
+  # 5. Build, scan and push Docker image to Amazon ECR
+  # --------------------------------------------------
+  build-scan-push:
+    name: Build, Scan and Push Image to ECR
+    runs-on: ubuntu-latest
+
+    needs:
+      - sonar
+      - filesystem-security
+      - infrastructure-config-security
+
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main'
+
+    permissions:
+      contents: read
+      id-token: write
+
+    outputs:
+      image_uri: ${{ steps.image.outputs.image_uri }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate required configuration
+        env:
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+        run: |
+          set -euo pipefail
+
+          test -n "$AWS_REGION" || {
+            echo "Missing Actions variable AWS_REGION"
+            exit 1
+          }
+
+          test -n "$AWS_ROLE_ARN" || {
+            echo "Missing Actions variable AWS_ROLE_ARN"
+            exit 1
+          }
+
+          test -n "$ECR_REPOSITORY" || {
+            echo "Missing Actions variable ECR_REPOSITORY"
+            exit 1
+          }
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        id: build-image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+        run: |
+          set -euo pipefail
+
+          IMAGE_URI="${REGISTRY}/${ECR_REPOSITORY}:${GITHUB_SHA}"
+
+          docker build --pull --tag "$IMAGE_URI" .
+
+          echo "IMAGE_URI=$IMAGE_URI" >> "$GITHUB_ENV"
+          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
+
+      - name: Trivy container image scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ steps.build-image.outputs.image_uri }}
+          scan-type: image
+          scanners: vuln
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+          format: table
+
+      - name: Generate SBOM
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ steps.build-image.outputs.image_uri }}
+          scan-type: image
+          format: cyclonedx
+          output: sbom.cdx.json
+          exit-code: "0"
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.sha }}
+          path: sbom.cdx.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Push image to ECR
+        run: docker push "$IMAGE_URI"
+
+      - name: Export image URI
+        id: image
+        env:
+          IMAGE_URI: ${{ steps.build-image.outputs.image_uri }}
+        run: |
+          echo "image_uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
+
+  # --------------------------------------------------
+  # 6. Deploy to production EC2 through AWS SSM
+  # --------------------------------------------------
+  deploy-production:
+    name: Approve and Deploy Production
+    runs-on: ubuntu-latest
+
+    needs: build-scan-push
+
+    environment: production
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Deploy through AWS Systems Manager
+        env:
+          INSTANCE_ID: ${{ vars.PRODUCTION_INSTANCE_ID }}
+          IMAGE_URI: ${{ needs.build-scan-push.outputs.image_uri }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+        run: |
+          set -euo pipefail
+
+          test -n "$INSTANCE_ID" || {
+            echo "Missing PRODUCTION_INSTANCE_ID"
+            exit 1
+          }
+
+          test -n "$IMAGE_URI" || {
+            echo "Missing image URI"
+            exit 1
+          }
+
+          PARAMETERS=$(python -c '
+          import json
+          import os
+
+          commands = [
+              "set -euo pipefail",
+              "sudo /opt/tnphelper/deploy.sh " + os.environ["IMAGE_URI"]
+          ]
+
+          print(json.dumps({"commands": commands}))
+          ')
+
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy Django image ${IMAGE_URI}" \
+            --parameters "$PARAMETERS" \
+            --query 'Command.CommandId' \
+            --output text)
+
+          echo "SSM command: $COMMAND_ID"
+
+          for attempt in $(seq 1 30); do
+            STATUS=$(aws ssm get-command-invocation \
+              --command-id "$COMMAND_ID" \
+              --instance-id "$INSTANCE_ID" \
+              --query 'Status' \
+              --output text 2>/dev/null || true)
+
+            echo "Deployment status: $STATUS"
+
+            case "$STATUS" in
+              Success)
+                echo "Production deployment completed successfully."
+                exit 0
+                ;;
+
+              Failed|Cancelled|TimedOut|Cancelling)
+                aws ssm get-command-invocation \
+                  --command-id "$COMMAND_ID" \
+                  --instance-id "$INSTANCE_ID" || true
+                exit 1
+                ;;
+            esac
+
+            sleep 10
+          done
+
+          echo "Timed out waiting for SSM deployment."
+
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID" || true
+
+          exit 1
