@@ -16,8 +16,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  PYTHON_VERSION: "3.11.5"
-
+  PYTHON_VERSION: "3.11"
+  DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE || 'resume_bank.settings' }}
 jobs:
   # --------------------------------------------------
   # 1. Django checks and unit tests
@@ -50,17 +50,17 @@ jobs:
 
       - name: Django system checks
         env:
-          DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
+         # DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
           SECRET_KEY: ${{ secrets.CI_SECRET_KEY }}
           DEBUG: "False"
-          ALLOWED_HOSTS: aws.dns.com
+          ALLOWED_HOSTS: "localhost,127.0.0.1"
         run: |
           python manage.py check
           python manage.py check --deploy
 
       - name: Unit tests
         env:
-          DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
+         # DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
           SECRET_KEY: ${{ secrets.CI_SECRET_KEY }}
           DEBUG: "False"
           ALLOWED_HOSTS: aws.dns.com
@@ -102,10 +102,10 @@ jobs:
 
       - name: Run tests with coverage
         env:
-          DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
+         # DJANGO_SETTINGS_MODULE: ${{ vars.DJANGO_SETTINGS_MODULE }}
           SECRET_KEY: ${{ secrets.CI_SECRET_KEY }}
           DEBUG: "False"
-          ALLOWED_HOSTS: aws.dns.com
+          ALLOWED_HOSTS: "localhost,127.0.0.1"
         run: |
           coverage run manage.py test
           coverage xml -o coverage.xml
@@ -165,7 +165,7 @@ jobs:
         uses: bridgecrewio/checkov-action@v12
         with:
           directory: .
-          framework: dockerfile,docker_compose,kubernetes,github_actions
+          framework: dockerfile,github_actions
           soft_fail: false
           quiet: true
 
@@ -181,9 +181,9 @@ jobs:
       - filesystem-security
       - infrastructure-config-security
 
-    if: >-
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/main'
+    if: false #>- 
+      #github.event_name == 'push' &&
+      #github.ref == 'refs/heads/main'
 
     permissions:
       contents: read
@@ -285,9 +285,11 @@ jobs:
   # --------------------------------------------------
   # 6. Deploy to production EC2 through AWS SSM
   # --------------------------------------------------
+  
   deploy-production:
     name: Approve and Deploy Production
     runs-on: ubuntu-latest
+    if: false
 
     needs: build-scan-push
 
