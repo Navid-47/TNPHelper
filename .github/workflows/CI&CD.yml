@@ -314,7 +314,7 @@ jobs:
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --comment "Deploy Django image ${IMAGE_URI}" \
+            --comment "TNPHelper production deploy"  \
             --parameters "$PARAMETERS" \
             --query 'Command.CommandId' \
             --output text)
