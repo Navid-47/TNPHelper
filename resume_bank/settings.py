@@ -238,7 +238,7 @@ if not DEBUG:
         "False" if DEBUG else "True",
     ).strip().lower() in {"1", "true", "yes", "on"}
     # Allow AWS ALB health checks over HTTP
-    SECURE_REDIRECT_EXEMPT = [r"^healthz/$"]
+    SECURE_REDIRECT_EXEMPT = [r"^healthz/$"]
 
     # Tell Django it is behind an SSL-terminating proxy
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
