@@ -98,6 +98,7 @@ jobs:
           DB_PASSWORD: ci_test_password
           DB_HOST: 127.0.0.1
           DB_PORT: "3306"
+          SECURE_SSL_REDIRECT: "False"
         run: python manage.py test
 
  
