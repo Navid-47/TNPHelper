@@ -286,6 +286,9 @@ jobs:
         run: |
           set -euo pipefail
 
+          INSTANCE_ID="$(printf '%s' "$INSTANCE_ID" | tr -d '\r\n')"
+          echo "Deploying to instance: [$INSTANCE_ID]"
+
           test -n "$INSTANCE_ID" || {
             echo "Missing PRODUCTION_INSTANCE_ID"
             exit 1
