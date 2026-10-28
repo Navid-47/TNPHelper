@@ -36,6 +36,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy the installed Python environment
 COPY --from=builder /opt/venv /opt/venv
 
+# Remove packaging tools not needed to run Django
+RUN /opt/venv/bin/python -m pip uninstall -y setuptools wheel \
+    && /usr/local/bin/python -m pip uninstall -y setuptools wheel
+
 WORKDIR /app
 
 # Copy application source code
