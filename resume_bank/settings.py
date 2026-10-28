@@ -233,7 +233,10 @@ ALLOWED_UPLOAD_EXTENSIONS = ['.pdf']
 # ──────────────────────────────────────────────
 if not DEBUG:
     # Redirect all HTTP → HTTPS (Nginx handles TLS; this is a safety net)
-    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=True, cast=bool)
+    SECURE_SSL_REDIRECT = os.getenv(
+        "SECURE_SSL_REDIRECT",
+        "False" if DEBUG else "True",
+    ).strip().lower() in {"1", "true", "yes", "on"}
 
     # Tell Django it is behind an SSL-terminating proxy
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -257,7 +260,10 @@ if not DEBUG:
     X_FRAME_OPTIONS = 'DENY'
 else:
     # Development: relax security headers so local HTTP works normally
-    SECURE_SSL_REDIRECT = False
+    SECURE_SSL_REDIRECT = os.getenv(
+        "SECURE_SSL_REDIRECT",
+        "False" if DEBUG else "True",
+    ).strip().lower() in {"1", "true", "yes", "on"}
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     SESSION_COOKIE_HTTPONLY = True
