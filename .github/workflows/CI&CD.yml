@@ -26,8 +26,9 @@ jobs:
     name: Python Tests and Django Checks
     runs-on: ubuntu-latest
 
+    
     services:
-       mysql:
+      mysql:
         image: mysql:8.0
         env:
           MYSQL_DATABASE: tnphelper_test
@@ -41,6 +42,7 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -76,6 +78,15 @@ jobs:
         run: |
           python manage.py check
           python manage.py check --deploy
+      
+      - name: Grant CI test database privileges
+        env:
+          MYSQL_CONTAINER_ID: ${{ job.services.mysql.id }}
+        run: |
+          set -euo pipefail
+          docker exec "$MYSQL_CONTAINER_ID" mysql \
+            -uroot -pci_root_test_password \
+            -e "GRANT ALL PRIVILEGES ON *.* TO 'ci_user'@'%'; FLUSH PRIVILEGES;"
 
       - name: Unit tests
         env:
@@ -289,8 +300,8 @@ jobs:
           import os
 
           commands = [
-              "set -euo pipefail",
-              "sudo /opt/tnphelper/deploy.sh " + os.environ["IMAGE_URI"]
+             "set -eu",
+             "sudo /opt/tnphelper/deploy.sh " + os.environ["IMAGE_URI"]
           ]
 
           print(json.dumps({"commands": commands}))
