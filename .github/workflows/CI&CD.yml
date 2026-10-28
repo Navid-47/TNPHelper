@@ -27,20 +27,20 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      postgres:
-        image: postgres:16
+       mysql:
+        image: mysql:8.0
         env:
-          POSTGRES_DB: tnphelper_test
-          POSTGRES_USER: ci_user
-          POSTGRES_PASSWORD: ci_test_password
+          MYSQL_DATABASE: tnphelper_test
+          MYSQL_USER: ci_user
+          MYSQL_PASSWORD: ci_test_password
+          MYSQL_ROOT_PASSWORD: ci_root_test_password
         ports:
-          - 5432:5432
+          - 3306:3306
         options: >-
-          --health-cmd "pg_isready -U ci_user -d tnphelper_test"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci_root_test_password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -72,7 +72,7 @@ jobs:
           DB_USER: ci_user
           DB_PASSWORD: ci_test_password
           DB_HOST: 127.0.0.1
-          DB_PORT: "5432"
+          DB_PORT: "3306"
         run: |
           python manage.py check
           python manage.py check --deploy
@@ -86,7 +86,7 @@ jobs:
           DB_USER: ci_user
           DB_PASSWORD: ci_test_password
           DB_HOST: 127.0.0.1
-          DB_PORT: "5432"
+          DB_PORT: "3306"
         run: python manage.py test
 
  
