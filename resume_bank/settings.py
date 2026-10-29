@@ -38,7 +38,7 @@ else:
 # ALLOWED_HOSTS: never defaults to ['*']
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
-    default='localhost,127.0.0.1',
+    default='localhost,127.0.0.1 , www.tnphelper.aclclouds.online , tnphelper.aclclouds.online',
     cast=Csv(),
 )
 
