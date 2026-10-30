@@ -42,8 +42,17 @@ RUN /opt/venv/bin/python -m pip uninstall -y setuptools wheel \
 
 WORKDIR /app
 
-# Copy application source code
-COPY . .
+# Copy only the Django application files
+COPY manage.py ./
+
+COPY resume_bank/ ./resume_bank/
+COPY accounts/ ./accounts/
+COPY core/ ./core/
+COPY students/ ./students/
+COPY tpo/ ./tpo/
+
+COPY templates/ ./templates/
+COPY static/ ./static/
 
 # Collect static assets using build-only dummy configuration
 RUN DEBUG=False SECRET_KEY=build-only DB_NAME=x DB_USER=x DB_PASSWORD=x DB_HOST=x \
