@@ -24,7 +24,7 @@ jobs:
   # --------------------------------------------------
   test:
     name: Python Tests and Django Checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     
     services:
@@ -45,10 +45,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -107,12 +107,12 @@ jobs:
   # --------------------------------------------------
   filesystem-security:
     name: Trivy Filesystem and Secrets Scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: test
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Trivy filesystem scan
         uses: aquasecurity/trivy-action@v0.36.0
@@ -130,12 +130,12 @@ jobs:
   # --------------------------------------------------
   infrastructure-config-security:
     name: Checkov Configuration Scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: test
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Checkov scan
         uses: bridgecrewio/checkov-action@v12
@@ -150,7 +150,7 @@ jobs:
   # --------------------------------------------------
   build-scan-push:
     name: Build, Scan and Push Image to ECR
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     needs:
       - filesystem-security
@@ -167,7 +167,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Validate required configuration
         env:
@@ -193,7 +193,7 @@ jobs:
           }
 
       - name: Configure AWS credentials via OIDC
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
@@ -238,7 +238,7 @@ jobs:
           exit-code: "0"
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: sbom-${{ github.sha }}
           path: sbom.cdx.json
@@ -261,7 +261,7 @@ jobs:
   
   deploy-production:
     name: Approve and Deploy Production
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     needs: build-scan-push
 
@@ -273,7 +273,7 @@ jobs:
 
     steps:
       - name: Configure AWS credentials via OIDC
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
